@@ -57,6 +57,36 @@ The system revolves around several agents, each designed to handle different asp
    python main.py
    ```
 
+## Example
+
+```plaintext
+Enter your query: What's the weather in Kochi?
+Thought: To get the weather in Kochi, I need to use the Web Search Agent to query the weather information.
+Agent: Web Search Agent
+Request: What is the current weather in Kochi, India?
+Thought: Since the user did not specify a search engine, I will navigate to Google.com. After that, I will use the Type Tool to enter the query "weather in Kochi, India" and then use the Click Tool to click the search button. This will provide me with the current weather information for Kochi, India.
+Action Name: GoTo Tool
+Action Input: {'url': 'https://www.google.com/'}
+Observation: Gone to https://www.google.com/.
+Thought: The A11y Tree shows that the search bar is focused and ready for input. I will use the Type Tool to enter the query "weather in Kochi, India" and then use the Click Tool to click the "Google Search" button. This will provide me with the current weather information for Kochi, India.
+Action Name: Type Tool
+Action Input: {'role': 'combobox', 'name': 'Search', 'content': 'weather in Kochi, India'}
+Observation: Typed weather in Kochi, India.
+Thought: The A11y Tree now shows the current weather information for Kochi, India, including the temperature, precipitation, humidity, and wind speed. I have all the necessary information to provide the final answer.
+Final Answer: The current weather in Kochi, India is 26°Celsius with Mist. The precipitation is 48%, humidity is 90%, and the wind speed is 0 km/h.
+Response: The current weather in Kochi, India is 26°Celsius with Mist. The precipitation is 48%, humidity is 90%, and the wind speed is 0 km/h.
+Thought: I want to store the information from the agent to the memory
+Agent: Web Search Agent
+Task: What is the current weather in Kochi, India?
+Plan: The Web Search Agent used a weather API to retrieve the current weather conditions for Kochi, India. The API returned the temperature, precipitation, humidity, and wind speed.
+Result: The current weather in Kochi, India is 26°Celsius with Mist. The precipitation is 48%, humidity is 90%, and the wind speed is 0 km/h.
+Stored Memory: {'id': '022c6e0c-8bf2-4400-a619-db3a51c10756', 'agent_name': 'Web Search Agent', 'task': 'What is the current weather in Kochi, India?', 'plan': 'The Web Search Agent used a weather API to retrieve the current weather conditions for Kochi, India. The API returned the temperature, precipitation, humidity, and wind speed.', 'result': 'The current weather in Kochi, India is 26°Celsius with Mist. The precipitation is 48%, humidity is 90%, and the wind speed is 0 km/h.', 'timestamp': 1730741860}
+Thought: The Store operation is carried out successfully.
+Final Answer: Memory stored successfully!
+Thought: I have the weather information for Kochi. I can now provide the final answer to the user.
+Final Answer: The current weather in Kochi, India is 26°Celsius with Mist. The precipitation is 48%, humidity is 90%, and the wind speed is 0 km/h.
+```
+
 ## Future Directions
 
 - Improve the **System Agent** to handle more complex GUI tasks and applications.

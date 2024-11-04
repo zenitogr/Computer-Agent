@@ -62,15 +62,18 @@ class MemoryAgent(BaseAgent):
         task = agent_data.get('Task')
         result = agent_data.get('Result')
         timestamp = int(time.time())
+        plan = agent_data.get('Plan')
         route = agent_data.get('Route')
         if self.verbose:
             print(colored(f'Agent: {agent_name}', color='green', attrs=['bold']))
             print(colored(f'Task: {task}', color='blue', attrs=['bold']))
+            print(colored(f'Plan: {plan}', color='yellow', attrs=['bold']))
             print(colored(f'Result: {result}', color='cyan', attrs=['bold']))
         memory_entry = {
             'id': str(uuid4()),
             'agent_name': agent_name,
             'task': task,
+            'plan': plan,
             'result': result,
             'timestamp': timestamp
         }
@@ -83,7 +86,7 @@ class MemoryAgent(BaseAgent):
             print(colored(f'Stored Memory: {memory_entry}', color='green', attrs=['bold']))
         state['messages'].pop()
         ai_message = AIMessage(f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Task>{task}</Task>\n<Result>{result}</Result>\n<Timestamp>{timestamp}</Timestamp>\n<Route>{route}</Route>')
-        human_message = HumanMessage(f'<Response>Stored Memory from {agent_name}: {memory_entry}</Response>')
+        human_message = HumanMessage(f'<Response>Stored Memory from {agent_name}: {memory_entry}</Response>\n<Plan>{plan}</Plan>')
         return {**state, 'messages': [ai_message, human_message]}
 
     def controller(self, state: AgentState):

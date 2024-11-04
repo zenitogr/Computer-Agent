@@ -220,7 +220,8 @@ class WebSearchAgent(BaseAgent):
         final_answer=agent_data.get('Final Answer')
         if self.verbose:
             print(colored(f'Final Answer: {final_answer}',color='cyan',attrs=['bold']))
-        return {**state,'output':final_answer}
+        plan=agent_data.get('Plan')
+        return {**state,'output':final_answer,'Plan':plan}
 
     def controller(self,state:AgentState):
         agent_data=state.get('agent_data')

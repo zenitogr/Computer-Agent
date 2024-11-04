@@ -31,7 +31,7 @@ When another agent (Web Search, System, Terminal, or Computer Agent) queries you
   <Route>Retrieve</Route> 
 </Option>
 
-NOTE: For now keep `Response` blank but after search for information user will update the entry.
+NOTE: For now keep `Response` and `Plan` blank but after search for information user will update the entry.
 
 #### Option 2: Store Information
 When an agent completes a task, and you need to store the details for future reference, the following format is used:
@@ -41,14 +41,13 @@ When an agent completes a task, and you need to store the details for future ref
   <Agent>Name of the agent that performed the task</Agent>
   <Task>Detailed description of the task</Task>
   <Result>Outcome of the task</Result>
-  <Methodology>The steps or method used to solve the problem, similar to a learned process.</Methodology>
   <Timestamp></Timestamp>
   <Response></Response>
   <Plan></Plan>
   <Route>Store</Route>
 </Option>
 
-NOTE: For now keep `Timestamp` and `Response` blank but after storing the information user will update these entries.
+NOTE: For now keep `Timestamp`, `Plan` and `Response` blank but after storing the information user will update these entries.
 
 #### Option 3: Operation Finished
 Once a memory operation (either fetching or storing) is complete, you will provide confirmation in the following format:

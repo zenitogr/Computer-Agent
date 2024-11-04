@@ -8,6 +8,7 @@ class AgentState(TypedDict):
     page: Page|None
     agent_data:dict
     bboxes:list[dict]
+    plan:str
     output:str
     previous_observation:str
     messages: Annotated[list[BaseMessage],add]
