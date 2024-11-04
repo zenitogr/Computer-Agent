@@ -41,6 +41,7 @@ Use the following format for `option 2`:
 
 <Option>
   <Thought>I got the answer for the query.</Thought>
+  <Plan>This is a structured explanation of the steps you took to solve the task, based on the thoughts, actions, and observations. Focus on recording the correct sequence of clicks, typing, and tool usage in a way that can be adapted for future tasks with similar requirements. Avoid overly specific or vague details; the aim is to make the steps reusable for related tasks.</Plan>
   <Final-Answer>Provide the final answer.</Final-Answer>
   <Route>Final</Route>
 </Option>

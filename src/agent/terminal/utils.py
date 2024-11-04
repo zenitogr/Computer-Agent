@@ -36,4 +36,8 @@ def extract_llm_response(text):
         route_match = re.search(r"<Route>(.*?)<\/Route>", text, re.DOTALL)
         if route_match:
             result['Route'] = route_match.group(1).strip()
+        # Extract Plan from Option 2
+        plan_match = re.search(r"<Plan>(.*?)<\/Plan>", text, re.DOTALL)
+        if plan_match:
+            result['Plan'] = plan_match.group(1).strip()
     return result

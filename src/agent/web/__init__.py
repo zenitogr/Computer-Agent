@@ -1,6 +1,6 @@
 from src.agent.web.tools import click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool
-from src.agent.web.utils import read_markdown_file,extract_llm_response,extract_observation
 from src.message import SystemMessage,HumanMessage,ImageMessage,AIMessage
+from src.agent.web.utils import read_markdown_file,extract_llm_response
 from playwright.async_api import async_playwright,Page
 from src.agent.web.ally_tree import build_a11y_tree
 from langgraph.graph import StateGraph,END,START
@@ -14,7 +14,6 @@ from typing import Literal
 from pathlib import Path
 import asyncio
 import json
-import re
 
 class WebSearchAgent(BaseAgent):
     def __init__(self,browser:Literal['chromium','firefox','edge']='chromium',instructions:list=[],llm:BaseInference=None,screenshot:bool=False,strategy:Literal['ally_tree','screenshot','combined']='ally_tree',viewport:tuple[int,int]=(1920,1080),max_iteration:int=10,headless:bool=True,verbose:bool=False) -> None:
@@ -175,19 +174,18 @@ class WebSearchAgent(BaseAgent):
             image_obj=b64encode(bytes).decode('utf-8')
             bboxes=[{'element_type':bbox.get('elementType'),'label_number':bbox.get('label'),'x':bbox.get('x'),'y':bbox.get('y')} for bbox in cordinates]
             ai_prompt=f'<Thought>{thought}</Thought>\n<Action-Name>{action_name}</Action-Name>\n<Action-Input>{json.dumps(action_input,indent=2)}</Action-Input>\n<Route>{route}</Route>'
-            user_prompt=f'<Observation>{observation} Now analyze the given screenshot for gathering information and decide whether to act or answer.</Observation>'
+            user_prompt=f'<Observation>{observation}\n\nNow analyze the given screenshot for gathering information and decide whether to act or answer.</Observation>'
             messages=[AIMessage(ai_prompt),ImageMessage(text=user_prompt,image_base_64=image_obj)]
         elif self.strategy=='ally_tree':
             state['messages'].pop() # Remove the last message for modification
             last_message=state['messages'][-1]
             if isinstance(last_message,HumanMessage):
-                text=extract_observation(last_message.content).split('\n\n')[0]
+                text=f'<Observation>{state.get('previous_observation')}</Observation>'
                 state['messages'][-1]=HumanMessage(text)
             snapshot=await page.accessibility.snapshot(interesting_only=True)
             # print(snapshot)
             ally_tree, bboxes =await build_a11y_tree(snapshot, page)
             # print(ally_tree)
-            # Replace the old image message with human message to reduce resource usage.
             ai_prompt=f'<Thought>{thought}</Thought>\n<Action-Name>{action_name}</Action-Name>\n<Action-Input>{json.dumps(action_input,indent=2)}</Action-Input>\n<Route>{route}</Route>'
             user_prompt=f'<Observation>{observation}\n\nNow analyze the A11y Tree for gathering information and decide whether to act or answer.\nAlly tree:\n{ally_tree}</Observation>'
             messages=[AIMessage(ai_prompt),HumanMessage(user_prompt)]
@@ -206,17 +204,16 @@ class WebSearchAgent(BaseAgent):
             last_message=state['messages'][-1]
             if isinstance(last_message,ImageMessage):
                 text,_=last_message.content
-                text=extract_observation(text).split('\n\n')[0]
+                text=f'<Observation>{state.get('previous_observation')}</Observation>'
                 state['messages'][-1]=HumanMessage(text)
             snapshot=await page.accessibility.snapshot(interesting_only=True)
             # print(snapshot)
             ally_tree, bboxes =await build_a11y_tree(snapshot, page)
             # print(ally_tree)
-            # Replace the old image message with human message to reduce resource usage.
             ai_prompt=f'<Thought>{thought}</Thought>\n<Action-Name>{action_name}</Action-Name>\n<Action-Input>{json.dumps(action_input,indent=2)}</Action-Input>\n<Route>{route}</Route>'
             user_prompt=f'<Observation>{observation}\n\nNow analyze the provided screenshot and A11y Tree ressembling the new state of the system and decide whether to act or answer.\nAlly tree:\n{ally_tree}</Observation>'
             messages=[AIMessage(ai_prompt),ImageMessage(user_prompt,image_base_64=image_obj)]
-        return {**state,'agent_data':agent_data,'messages':messages,'bboxes':bboxes,'page':page}
+        return {**state,'agent_data':agent_data,'messages':messages,'bboxes':bboxes,'page':page,'previous_observation':observation}
 
     def final(self,state:AgentState):
         agent_data=state.get('agent_data')

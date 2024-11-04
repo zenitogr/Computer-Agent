@@ -42,6 +42,7 @@ If you have gathered enough information and can confidently provide the user wit
 
 <Option>
   <Thought>Explanation of why you are confident that the final answer is ready to be presented after analyzing the screenshot and elements identified by their bounding boxes and label numbers.</Thought>
+  <Plan>This is a structured explanation of the steps you took to solve the task, based on the thoughts, actions, and observations. Focus on recording the correct sequence of clicks, typing, and tool usage in a way that can be adapted for future tasks with similar requirements. Avoid overly specific or vague details; the aim is to make the steps reusable for related tasks.</Plan>
   <Final-Answer>Provide the final answer to the user in markdown format.</Final-Answer>
   <Route>Final</Route>
 </Option>
