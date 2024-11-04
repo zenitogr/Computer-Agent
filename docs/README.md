@@ -1,4 +1,4 @@
-# Computer Agent Project
+# Computer Agent
 
 ## Overview
 
@@ -7,6 +7,7 @@ This project is inspired by how a person naturally interacts with a computer to 
 Just as a person remembers past actions on a computer to guide future decisions, this agentic system uses a **Memory Agent** to store and recall knowledge from prior tasks. These stored interactions help the system to solve new, often related, problems based on past experiences.
 
 ### Architecture
+The following diagram outlines the high-level interactions between the different agents:
 ![Image of the architecture](diagram.svg)
 
 ### Development Status
@@ -41,19 +42,11 @@ The system revolves around several agents, each designed to handle different asp
 - When a new task arrives, the system checks the **Memory Agent** for relevant past actions to either replicate or adapt a previous solution.
 - The system combines different agents (System, Web Search, Terminal) to accomplish tasks in a way that mirrors how a human might use a computer.
 
-## Diagrams
-
-The following diagram outlines the high-level interactions between the different agents:
-
-![Project Diagram](diagram.svg)
-
-More diagrams explaining specific components or workflows can be added here.
-
 ## How to Run
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/computer-agent-project.git
+   git clone https://github.com/jeomon/computer-agent.git
    ```
 2. Install dependencies:
    ```bash
@@ -75,5 +68,3 @@ More diagrams explaining specific components or workflows can be added here.
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
-
-This version emphasizes the development status, the use of LLM for system manipulation, and includes a placeholder for the diagrams. Let me know if you'd like any further modifications!
