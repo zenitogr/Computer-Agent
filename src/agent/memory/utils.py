@@ -11,10 +11,9 @@ def extract_llm_response(option_text):
     thought_pattern = re.compile(r"<Thought>(.*?)</Thought>")
     agent_pattern = re.compile(r"<Agent>(.*?)</Agent>")
     request_pattern = re.compile(r"<Request>(.*?)</Request>")
-    response_pattern = re.compile(r"<Response>(.*?)</Response>")
     task_pattern = re.compile(r"<Task>(.*?)</Task>")
     result_pattern = re.compile(r"<Result>(.*?)</Result>")
-    timestamp_pattern = re.compile(r"<Timestamp>(.*?)</Timestamp>")
+    plan_pattern = re.compile(r"<Plan>(.*?)</Plan>")
     final_answer_pattern = re.compile(r"<Final-Answer>(.*?)</Final-Answer>")
     route_pattern = re.compile(r"<Route>(.*?)</Route>")
 
@@ -51,12 +50,16 @@ def extract_llm_response(option_text):
         
         result = result_pattern.search(option_text)
         result = result.group(1) if result else None
+
+        plan = plan_pattern.search(option_text)
+        plan = plan.group(1) if plan else None
         
         return {
             "Thought": thought,
             "Agent": agent,
             "Task": task,
             "Result": result,
+            "Plan": plan,
             "Route": route
         }
     

@@ -33,7 +33,7 @@ In this mode, you are expected to analyze the problem statement and the current 
 When interacting with the system, break down the main problem into smaller, manageable sub-problems and solve them step by step. Your response must follow this strict format:
 
 <Option>
-  <Thought>Explanation of why you are using this specific tool and what you expect it to accomplish after fully analyzing the ally tree.</Thought>
+  <Thought>Provide a detailed explanation of why you chose this particular tool for the task and what you expect to achieve by applying it, based on your analysis of the A11y tree and the current state of the system.</Thought>
   <Action-Name>Tool Name</Action-Name>
   <Action-Input>{{'param1':'value1',...}}</Action-Input>
   <Observation></Observation>
@@ -54,7 +54,8 @@ In this mode, after completing all necessary tasks, you are confident that the u
 Your response must follow this strict format:
 
 <Option>
-  <Thought>Explanation of why you are confident that the final answer is ready to be presented after analyzing the A11y Tree.</Thought>
+  <Thought>Explanation of why you are confident that the task is solved, considering the analysis of the A11y tree and the actions taken.</Thought>
+  <Plan>This is a structured explanation of the steps you took to solve the task, based on the thoughts, actions, and observations. Focus on recording the correct sequence of clicks, typing, and tool usage in a way that can be adapted for future tasks with similar requirements. Avoid overly specific or vague details; the aim is to make the steps reusable for related tasks.</Plan>
   <Final-Answer>Provide the final answer to the user in markdown format.</Final-Answer>
   <Route>Final</Route>
 </Option>

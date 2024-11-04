@@ -208,9 +208,13 @@ class SystemAgent(BaseAgent):
             final_answer=agent_data.get('Final Answer')
         else:
             final_answer='Maximum Iteration Reached'
+        query=agent_data.get('Query')
+        plan=agent_data.get('Plan')
         if self.verbose:
             print(colored(f'Final Answer: {final_answer}',color='cyan',attrs=['bold']))
-        return {**state,'output':final_answer}
+            # print(colored(f'Query: {query}',color='green',attrs=['bold']))
+            # print(colored(f'Plan: {plan}',color='yellow',attrs=['bold']))
+        return {**state,'output':final_answer,'plan':plan,'query':query}
 
     def controller(self,state:AgentState):
         if self.iteration<self.max_iteration:
@@ -266,8 +270,8 @@ class SystemAgent(BaseAgent):
             'bboxes':bboxes,
             'messages':[system_message,human_message],
         }
-        agent_response=self.graph.invoke(state)
-        return agent_response['output']
+        graph_response=self.graph.invoke(state)
+        return graph_response
 
     def stream(self,input:str):
         pass

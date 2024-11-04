@@ -26,7 +26,8 @@ When another agent (Web Search, System, Terminal, or Computer Agent) queries you
   <Thought>The agent is requesting information. Analyze the need and craft the request query.</Thought>
   <Agent>Name of the agent who's information is wanted.</Agent>
   <Request>The information they are asking for and wish to extract.</Request> 
-  <Response></Response> 
+  <Response></Response>
+  <Plan></Plan>
   <Route>Retrieve</Route> 
 </Option>
 
@@ -43,6 +44,7 @@ When an agent completes a task, and you need to store the details for future ref
   <Methodology>The steps or method used to solve the problem, similar to a learned process.</Methodology>
   <Timestamp></Timestamp>
   <Response></Response>
+  <Plan></Plan>
   <Route>Store</Route>
 </Option>
 

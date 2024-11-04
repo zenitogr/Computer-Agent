@@ -94,7 +94,7 @@ class TerminalAgent(BaseAgent):
             'output':None
         }
         graph_response=self.graph.invoke(state)
-        return graph_response['output']
+        return graph_response
 
     def stream(self,input:str):
         pass

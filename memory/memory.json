@@ -1,9 +1,1 @@
-[
-    {
-        "id": "eb4bf071-f2b0-4602-8455-dae2cd4758d8",
-        "agent_name": "Web Search Agent",
-        "task": "What is the current price of Tesla stock?",
-        "result": "The current price of Tesla stock is **$248.98**.",
-        "timestamp": 1730526701
-    }
-]
+[]

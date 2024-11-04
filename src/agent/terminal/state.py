@@ -5,5 +5,6 @@ from operator import add
 class AgentState(TypedDict):
     input:str
     agent_data:dict
+    plan:str
     output:str
     messages:Annotated[list[BaseMessage],add]

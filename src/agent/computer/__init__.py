@@ -43,11 +43,12 @@ class ComputerAgent(BaseAgent):
         thought=agent_data.get('Thought')
         agent=WebSearchAgent(llm=self.llm,verbose=self.verbose,browser='edge',headless=False)
         agent_response=agent.invoke(request)
+        response=agent_response.get('output')
         if self.verbose:
-            print(colored(f'Response: {agent_response}',color='blue',attrs=['bold'])) 
+            print(colored(f'Response: {response}',color='blue',attrs=['bold'])) 
         state['messages'].pop()
         ai_message=f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Request>{request}</Request>\n<Route>{route}</Route>'
-        user_message=f'<Response>{agent_response}</Response>'
+        user_message=f'<Response>{response}</Response>'
         messages=[AIMessage(ai_message),HumanMessage(user_message)] 
         return {**state, 'messages':messages,'agent_response':agent_response,'current_agent':agent_name}
 
@@ -59,11 +60,12 @@ class ComputerAgent(BaseAgent):
         thought=agent_data.get('Thought')
         agent=TerminalAgent(llm=self.llm,verbose=self.verbose)
         agent_response=agent.invoke(request)
+        response=agent_response.get('output')
         if self.verbose:
-            print(colored(f'Response: {agent_response}',color='blue',attrs=['bold'])) 
+            print(colored(f'Response: {response}',color='blue',attrs=['bold'])) 
         state['messages'].pop()
         ai_message=f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Request>{request}</Request>\n<Route>{route}</Route>'
-        user_message=f'<Response>{agent_response}</Response>'
+        user_message=f'<Response>{response}</Response>'
         messages=[AIMessage(ai_message),HumanMessage(user_message)] 
         return {**state, 'messages':messages,'agent_response':agent_response,'current_agent':agent_name}
 
@@ -76,11 +78,12 @@ class ComputerAgent(BaseAgent):
         thought=agent_data.get('Thought')
         agent=SystemAgent(llm=self.llm,screenshot=False,strategy='ally_tree',verbose=self.verbose)
         agent_response=agent.invoke(request)
+        response=agent_response.get('output')
         if self.verbose:
-            print(colored(f'Response: {agent_response}',color='blue',attrs=['bold']))    
+            print(colored(f'Response: {response}',color='blue',attrs=['bold']))    
         state['messages'].pop()
         ai_message=f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Request>{request}</Request>\n<Route>{route}</Route>'
-        user_message=f'<Response>{agent_response}</Response>'
+        user_message=f'<Response>{response}</Response>'
         messages=[AIMessage(ai_message),HumanMessage(user_message)] 
         return {**state, 'messages':messages,'agent_response':agent_response,'current_agent':agent_name}
     
@@ -103,11 +106,13 @@ class ComputerAgent(BaseAgent):
     def memory(self,state:AgentState):
         agent_data=state.get('agent_data')
         route=agent_data.get('Route').lower()
+        agent_response=state.get('agent_response')
         request=agent_data.get('Request')
         if route=='agent':
             current_agent=agent_data.get('Agent')
-            response=state.get('agent_response')
-            agent_response=self.memory_agent.invoke(f'Store the folowing information to the memory\nAgent Name: {current_agent}\nTask: {request}\nResult: {response}')
+            plan=agent_response.get('Plan','')
+            response=agent_response.get('output')
+            agent_response=self.memory_agent.invoke(f'Store the folowing information to the memory\nAgent Name: {current_agent}\nTask: {request}\nPlan: {plan}\nResult: {response}')
             message=HumanMessage(f'{agent_response}')
             # if self.verbose:
             #     print(colored(f'Memory Stored: {agent_response}',color='yellow',attrs=['bold']))

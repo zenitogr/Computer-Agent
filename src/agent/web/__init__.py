@@ -262,11 +262,11 @@ class WebSearchAgent(BaseAgent):
             'output':'',
             'messages':[SystemMessage(self.system_prompt),HumanMessage(input)]
         }
-        response=await self.graph.ainvoke(state)
+        graph_response=await self.graph.ainvoke(state)
         await page.close()
         await browser.close()
         await playwright.stop()
-        return response['output']
+        return graph_response
         
     def invoke(self, input: str)->str:
         return asyncio.run(self.async_invoke(input))
