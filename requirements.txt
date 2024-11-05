@@ -5,6 +5,5 @@ requests
 python-dotenv
 tenacity
 pyautogui
-redis
 playwright
 uiautomation
