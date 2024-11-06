@@ -50,7 +50,7 @@ class SystemAgent(BaseAgent):
                 x,y=bbox.get('x'),bbox.get('y')
                 break
         if x is None or y is None:
-            raise Exception('Bounding Box not found')
+            raise Exception('Role and Name not found in Ally Tree')
         return x,y
     
     def find_element_by_label(self,state:AgentState,label:str):
@@ -60,7 +60,7 @@ class SystemAgent(BaseAgent):
                 x,y=bbox.get('x'),bbox.get('y')
                 break
         if x is None or y is None:
-            raise Exception('Bounding Box not found')
+            raise Exception('Label not found in Screenshot')
         return x,y
 
     def reason(self,state:AgentState):
@@ -85,36 +85,39 @@ class SystemAgent(BaseAgent):
             print(colored(f'Action Input: {action_input}',color='blue',attrs=['bold']))
         tool=self.tools[action_name]
         if self.strategy in['ocr','ally_tree']:
-            if action_name=='Single Click Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                cordinate=self.find_element_by_role_and_name(state,role,name)
-                observation=tool(role=role,name=name,cordinate=cordinate)
-            elif action_name=='Double Click Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                cordinate=self.find_element_by_role_and_name(state,role,name)
-                observation=tool(role=role,name=name,cordinate=cordinate)
-            elif action_name=='Right Click Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                cordinate=self.find_element_by_role_and_name(state,role,name)
-                observation=tool(role=role,name=name,cordinate=cordinate)
-            elif action_name=='Type Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                text=action_input.get('text')
-                observation=tool(role=role,name=name,text=text)
-            elif action_name=='Scroll Tool':
-                direction=action_input.get('direction')
-                amount=action_input.get('amount')
-                observation=tool(direction,amount)
-            elif action_name=='Shortcut Tool':
-                shortcut=action_input.get('shortcut')
-                observation=tool(shortcut)
-            elif action_name=='Key Tool':
-                key=action_input.get('key')
-                observation=tool(key)
+            try:
+                if action_name=='Single Click Tool':
+                    role=action_input.get('role')
+                    name=action_input.get('name')
+                    cordinate=self.find_element_by_role_and_name(state,role,name)
+                    observation=tool(role=role,name=name,cordinate=cordinate)
+                elif action_name=='Double Click Tool':
+                    role=action_input.get('role')
+                    name=action_input.get('name')
+                    cordinate=self.find_element_by_role_and_name(state,role,name)
+                    observation=tool(role=role,name=name,cordinate=cordinate)
+                elif action_name=='Right Click Tool':
+                    role=action_input.get('role')
+                    name=action_input.get('name')
+                    cordinate=self.find_element_by_role_and_name(state,role,name)
+                    observation=tool(role=role,name=name,cordinate=cordinate)
+                elif action_name=='Type Tool':
+                    role=action_input.get('role')
+                    name=action_input.get('name')
+                    text=action_input.get('text')
+                    observation=tool(role=role,name=name,text=text)
+                elif action_name=='Scroll Tool':
+                    direction=action_input.get('direction')
+                    amount=action_input.get('amount')
+                    observation=tool(direction,amount)
+                elif action_name=='Shortcut Tool':
+                    shortcut=action_input.get('shortcut')
+                    observation=tool(shortcut)
+                elif action_name=='Key Tool':
+                    key=action_input.get('key')
+                    observation=tool(key)
+            except Exception as error:
+                observation=error
             else:
                 raise Exception('Tool not found.')
         elif self.strategy=='yolo':
@@ -202,7 +205,7 @@ class SystemAgent(BaseAgent):
         file_path = path.joinpath(f'screenshot_{date_time}.png').as_posix()
         screenshot.save(file_path, format='PNG')
 
-    def final(self,state:AgentState):
+    def final(self,state:AgentState):        
         agent_data=state.get('agent_data')
         if self.iteration<self.max_iteration:
             final_answer=agent_data.get('Final Answer')
