@@ -2,6 +2,7 @@ from src.agent.terminal.utils import extract_llm_response,read_markdown_file
 from src.message import AIMessage,HumanMessage,SystemMessage
 from langgraph.graph import StateGraph,START,END
 from src.agent.terminal.state import AgentState
+from src.agent.memory import MemoryAgent
 from src.inference import BaseInference
 from src.agent import BaseAgent
 from termcolor import colored
@@ -18,6 +19,7 @@ class TerminalAgent(BaseAgent):
         self.verbose=verbose
         self.max_iteration=max_iteration
         self.iteration=0
+        self.memory=MemoryAgent(llm,verbose)
         self.system_prompt=read_markdown_file('./src/agent/terminal/prompt.md')
         self.graph=self.create_graph()
 
@@ -53,6 +55,19 @@ class TerminalAgent(BaseAgent):
         messages=[AIMessage(ai_prompt),HumanMessage(user_prompt)]
         return {**state,'agent_data':agent_data,'messages':messages}
     
+    def retrieve(self,state:AgentState):
+        state['messages'].pop()
+        agent_data=state.get('agent_data')
+        thought=agent_data.get('Thought')
+        agent_name=agent_data.get('Agent')
+        request=agent_data.get('Request')
+        route=agent_data.get('Route')
+        agent_response=self.memory.invoke(f'<Agent>{agent_name}</Agent>\n<Request>{request}</Request>')
+        ai_message=AIMessage(f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Request>{request}</Request>\n<Route>{route}</Route>')
+        human_message=HumanMessage(f'<Response>{agent_response}</Response>')
+        messages=[ai_message,human_message]
+        return {**state,'messages':messages}
+
     def final(self,state:AgentState):
         agent_data=state.get('agent_data')
         final_answer=agent_data.get('Final Answer')
@@ -68,17 +83,19 @@ class TerminalAgent(BaseAgent):
         
 
     def create_graph(self):
-        workflow=StateGraph(AgentState)
-        workflow.add_node('reason',self.reason)
-        workflow.add_node('action',self.action)
-        workflow.add_node('final',self.final)
+        graph=StateGraph(AgentState)
+        graph.add_node('reason',self.reason)
+        graph.add_node('action',self.action)
+        graph.add_node('retrieve',self.retrieve)
+        graph.add_node('final',self.final)
 
-        workflow.add_edge(START,'reason')
-        workflow.add_conditional_edges('reason',self.main_controller)
-        workflow.add_edge('action','reason')
-        workflow.add_edge('final',END)
+        graph.add_edge(START,'reason')
+        graph.add_conditional_edges('reason',self.main_controller)
+        graph.add_edge('action','retrieve')
+        graph.add_edge('action','reason')
+        graph.add_edge('final',END)
 
-        return workflow.compile(debug=False)
+        return graph.compile(debug=False)
 
     def invoke(self,input:str):
         parameters={

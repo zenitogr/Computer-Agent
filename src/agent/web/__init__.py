@@ -1,10 +1,11 @@
 from src.agent.web.tools import click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool
 from src.message import SystemMessage,HumanMessage,ImageMessage,AIMessage
 from src.agent.web.utils import read_markdown_file,extract_llm_response
-from playwright.async_api import async_playwright,Page
 from src.agent.web.ally_tree import build_a11y_tree
+from playwright.async_api import async_playwright
 from langgraph.graph import StateGraph,END,START
 from src.agent.web.state import AgentState
+from src.agent.memory import MemoryAgent
 from src.inference import BaseInference
 from src.agent import BaseAgent
 from datetime import datetime
@@ -26,6 +27,7 @@ class WebSearchAgent(BaseAgent):
         self.tool_names=[tool.name for tool in tools]
         self.tools={tool.name:tool for tool in tools}
         self.max_iteration=max_iteration
+        self.memory=MemoryAgent(llm,verbose)
         self.screenshot=screenshot
         self.strategy=strategy
         self.viewport=viewport
@@ -215,6 +217,19 @@ class WebSearchAgent(BaseAgent):
             messages=[AIMessage(ai_prompt),ImageMessage(user_prompt,image_base_64=image_obj)]
         return {**state,'agent_data':agent_data,'messages':messages,'bboxes':bboxes,'page':page,'previous_observation':observation}
 
+    def retrieve(self,state:AgentState):
+        state['messages'].pop()
+        agent_data=state.get('agent_data')
+        thought=agent_data.get('Thought')
+        agent_name=agent_data.get('Agent')
+        request=agent_data.get('Request')
+        route=agent_data.get('Route')
+        agent_response=self.memory.invoke(f'<Agent>{agent_name}</Agent>\n<Request>{request}</Request>')
+        ai_message=AIMessage(f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Request>{request}</Request>\n<Route>{route}</Route>')
+        human_message=HumanMessage(f'<Response>{agent_response}</Response>')
+        messages=[ai_message,human_message]
+        return {**state,'messages':messages}
+
     def final(self,state:AgentState):
         agent_data=state.get('agent_data')
         final_answer=agent_data.get('Final Answer')
@@ -231,10 +246,12 @@ class WebSearchAgent(BaseAgent):
         graph=StateGraph(AgentState)
         graph.add_node('reason',self.reason)
         graph.add_node('action',self.action)
+        graph.add_node('retrieve',self.retrieve)
         graph.add_node('final',self.final)
 
         graph.add_edge(START,'reason')
         graph.add_conditional_edges('reason',self.controller)
+        graph.add_edge('action','retrieve')
         graph.add_edge('action','reason')
         graph.add_edge('final',END)
 

@@ -7,3 +7,7 @@ tenacity
 pyautogui
 playwright
 uiautomation
+opencv-python
+pillow
+easyocr
+ultralytics

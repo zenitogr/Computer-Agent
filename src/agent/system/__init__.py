@@ -6,6 +6,7 @@ from src.agent.system.yolo import yolo_and_coordinates
 from src.agent.system.ocr import ocr_and_coordinates
 from langgraph.graph import StateGraph,START,END
 from src.agent.system.state import AgentState
+from src.agent.memory import MemoryAgent
 from src.inference import BaseInference
 from src.agent import BaseAgent
 from datetime import datetime
@@ -39,6 +40,7 @@ class SystemAgent(BaseAgent):
         self.reader=Reader(['en'],gpu=False)
         self.yolo_model=YOLO(model='./models/best.pt')
         self.screenshot=screenshot
+        self.memory=MemoryAgent(llm,verbose)
         self.verbose=verbose
         self.iteration=0
         self.llm=llm
@@ -191,6 +193,19 @@ class SystemAgent(BaseAgent):
         messages=[ai_message,human_message]
         return {**state,'agent_data':agent_data,'messages':messages,'bboxes':bboxes,'previous_observation':observation}
 
+    def retrieve(self,state:AgentState):
+        state['messages'].pop()
+        agent_data=state.get('agent_data')
+        thought=agent_data.get('Thought')
+        agent_name=agent_data.get('Agent')
+        request=agent_data.get('Request')
+        route=agent_data.get('Route')
+        agent_response=self.memory.invoke(f'<Agent>{agent_name}</Agent>\n<Request>{request}</Request>')
+        ai_message=AIMessage(f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Request>{request}</Request>\n<Route>{route}</Route>')
+        human_message=HumanMessage(f'<Response>{agent_response}</Response>')
+        messages=[ai_message,human_message]
+        return {**state,'messages':messages}
+    
     def screenshot_in_bytes(self,screenshot):
         io=BytesIO()
         screenshot.save(io,format='PNG')
@@ -229,10 +244,12 @@ class SystemAgent(BaseAgent):
         graph=StateGraph(AgentState)
         graph.add_node('reason',self.reason)
         graph.add_node('action',self.action)
+        graph.add_node('retrieve',self.retrieve)
         graph.add_node('final',self.final)
 
         graph.add_edge(START,'reason')
         graph.add_conditional_edges('reason',self.controller)
+        graph.add_edge('action','retrieve')
         graph.add_edge('action','reason')
         graph.add_edge('final',END)
 
