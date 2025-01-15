@@ -3,7 +3,7 @@ from src.message import AIMessage,HumanMessage,SystemMessage
 from langgraph.graph import StateGraph,START,END
 from src.agent.computer.state import AgentState
 from src.agent.terminal import TerminalAgent
-from src.agent.web import WebSearchAgent
+from src.agent.web import WebAgent
 from src.agent.system import SystemAgent
 from src.agent.memory import MemoryAgent
 from src.llm_switcher import LLMSwitcher
@@ -35,13 +35,13 @@ class ComputerAgent(BaseAgent):
             print(colored(f'Thought: {thought}',color='light_magenta',attrs=['bold']))
         return {**state,'agent_data': agent_data,'messages':[message],'current_agent':'Computer Agent'}
     
-    def web_search(self,state:AgentState):
+    def web(self,state:AgentState):
         agent_data=state.get('agent_data')
         request=agent_data.get('Request')
         agent_name=agent_data.get('Agent')
         route=agent_data.get('Route')
         thought=agent_data.get('Thought')
-        agent=WebSearchAgent(llm=self.llm,verbose=self.verbose,browser='edge',headless=False)
+        agent=WebAgent(llm=self.llm,verbose=self.verbose,browser='edge',headless=False)
         agent_response=agent.invoke(request)
         response=agent_response.get('output')
         if self.verbose:
@@ -94,8 +94,8 @@ class ComputerAgent(BaseAgent):
         if self.verbose:
             print(colored(f'Agent: {current_agent}',color='green',attrs=['bold']))
             print(colored(f'Request: {request}',color='cyan',attrs=['bold']))
-        if current_agent=='Web Search Agent':
-            return self.web_search(state)
+        if current_agent=='Web Agent':
+            return self.web(state)
         elif current_agent=='Terminal Agent':
             return self.terminal(state)
         elif current_agent=='System Agent':

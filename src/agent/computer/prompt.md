@@ -53,7 +53,7 @@ Use this option when a sub-task can be handled by one of the three specialized a
 
 <Option>
   <Thought>Explain how you plan to solve the sub-task using one of the specialized agents.</Thought>
-  <Agent>[Web Search Agent | System Agent | Terminal Agent]</Agent>
+  <Agent>[Web Agent | System Agent | Terminal Agent]</Agent>
   <Request>Provide the sub-task request for the chosen agent.</Request>
   <Response></Response>
   <Route>Agent</Route>
