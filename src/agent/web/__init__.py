@@ -1,290 +1,174 @@
-from src.agent.web.tools import click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool
+from src.agent.web.tools import click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool,key_tool,extract_content_tool,download_tool,tab_tool,upload_tool,menu_tool
+from src.agent.web.utils import read_markdown_file,extract_agent_data
 from src.message import SystemMessage,HumanMessage,ImageMessage,AIMessage
-from src.agent.web.utils import read_markdown_file,extract_llm_response
-from src.agent.web.ally_tree import build_a11y_tree
-from playwright.async_api import async_playwright
+from src.agent.web.browser import Browser,BrowserConfig
+from src.agent.web.context import Context,ContextConfig
 from langgraph.graph import StateGraph,END,START
+from src.agent.web.registry import Registry
 from src.agent.web.state import AgentState
-from src.agent.memory import MemoryAgent
 from src.inference import BaseInference
 from src.agent import BaseAgent
 from datetime import datetime
 from termcolor import colored
-from base64 import b64encode
+from getpass import getuser
 from typing import Literal
+from src.tool import Tool
 from pathlib import Path
+from os import getcwd
+import nest_asyncio
 import asyncio
 import json
 
-class WebSearchAgent(BaseAgent):
-    def __init__(self,browser:Literal['chromium','firefox','edge']='chromium',instructions:list=[],llm:BaseInference=None,screenshot:bool=False,strategy:Literal['ally_tree','screenshot','combined']='ally_tree',viewport:tuple[int,int]=(1920,1080),max_iteration:int=10,headless:bool=True,verbose:bool=False) -> None:
-        self.name='Web Search Agent'
-        self.description='This agent is designed to automate the process of gathering information from the internet, such as to navigate websites, perform searches, and retrieve data.'
-        self.headless=headless
+main_tools=[
+    menu_tool,click_tool,
+    goto_tool,type_tool,scroll_tool,
+    wait_tool,back_tool,key_tool,
+    download_tool,tab_tool,upload_tool
+]
+
+class WebAgent(BaseAgent):
+    def __init__(self,browser:Literal['chrome','firefox','edge']='edge',additional_tools:list[Tool]=[],instructions:list=[],llm:BaseInference=None,max_iteration:int=10,use_vision:bool=False,headless:bool=True,verbose:bool=False,token_usage:bool=False) -> None:
+        """
+        Initialize a WebAgent instance.
+        Args:
+            browser (Literal['chrome', 'firefox', 'edge']): The browser to use for web automation. Defaults to 'edge'.
+            additional_tools (list[Tool]): A list of additional tools to be used by the agent. Defaults to an empty list.
+            instructions (list): A list of instructions for the agent to follow. Defaults to an empty list.
+            llm (BaseInference): The language model inference engine used by the agent. Defaults to None.
+            max_iteration (int): The maximum number of iterations the agent should perform. Defaults to 10.
+            use_vision (bool): Whether to use vision capabilities for web interaction. Defaults to False.
+            headless (bool): Whether to run the browser in headless mode. Defaults to True.
+            verbose (bool): Whether to enable verbose to show agent's flow. Defaults to False.
+            token_usage (bool): Whether to track token usage. Defaults to False.
+        """
+        self.name='Web Agent'
+        self.description='The web agent is designed to automate the process of gathering information from the internet, such as to navigate websites, perform searches, and retrieve data.'
+        self.system_prompt=read_markdown_file('./src/agent/web/prompt/system.md')
+        self.human_prompt=read_markdown_file('./src/agent/web/prompt/human.md')
+        self.browser=Browser(BrowserConfig(browser=browser,headless=headless,user_data_dir=Path(getcwd()).joinpath(f'./user_data/{browser}/{getuser()}').as_posix()))
+        self.ai_prompt=read_markdown_file('./src/agent/web/prompt/ai.md')
         self.instructions=self.get_instructions(instructions)
-        self.system_prompt=read_markdown_file(f'./src/agent/web/prompt/{strategy}.md')
-        tools=[click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool]
-        self.tool_names=[tool.name for tool in tools]
-        self.tools={tool.name:tool for tool in tools}
+        self.context=Context(self.browser,ContextConfig())
         self.max_iteration=max_iteration
-        self.memory=MemoryAgent(llm,verbose)
-        self.screenshot=screenshot
-        self.strategy=strategy
-        self.viewport=viewport
-        self.browser=browser
+        self.registry=Registry(main_tools+additional_tools)
+        self.use_vision=use_vision
+        self.token_usage=token_usage
         self.verbose=verbose
         self.iteration=0
         self.llm=llm
         self.graph=self.create_graph()
-        self.wait_time=5000
-        with open('./src/agent/web/bounding_box.js','r') as js:
-            self.js_script=js.read()
 
     def get_instructions(self,instructions):
         return '\n'.join([f'{i+1}. {instruction}' for (i,instruction) in enumerate(instructions)])
 
     async def reason(self,state:AgentState):
-        message=await self.llm.async_invoke(state.get('messages'))
-        # print(llm_response.content)
-        agent_data=extract_llm_response(message.content)
+        "Call LLM to make decision"
+        ai_message=await self.llm.async_invoke(state.get('messages'))
+        # print(ai_message.content)
+        agent_data=extract_agent_data(ai_message.content)
+        thought=agent_data.get('Thought')
+        route=agent_data.get('Route')
         if self.verbose:
-            thought=agent_data.get('Thought')
             print(colored(f'Thought: {thought}',color='light_magenta',attrs=['bold']))
-        return {**state,'agent_data': agent_data,'messages':[message]}
-
-    def find_element_by_label(self,state:AgentState,label:str):
-        x,y=None,None
-        for bbox in state.get('bboxes'):
-            if bbox.get('label_number')==label:
-                x,y=bbox.get('x'),bbox.get('y')
-                break
-        if x is None or y is None:
-            raise Exception('Bounding Box not found')
-        return x,y
-    
-    def find_element_by_role_and_name(self,state:AgentState,role:str,name:str):
-        x,y=None,None
-        for bbox in state.get('bboxes'):
-            if bbox.get('role')==role and bbox.get('name')==name:
-                x,y=bbox.get('x'),bbox.get('y')
-                break
-        if x is None or y is None:
-            raise Exception('Bounding Box not found')
-        return x,y
+        return {**state,'agent_data': agent_data,'messages':[ai_message],'route':route}
 
     async def action(self,state:AgentState):
+        "Execute the provided action"
         agent_data=state.get('agent_data')
         thought=agent_data.get('Thought')
         action_name=agent_data.get('Action Name')
         action_input=agent_data.get('Action Input')
         route=agent_data.get('Route')
-        page=state.get('page')
+
         if self.verbose:
             print(colored(f'Action Name: {action_name}',color='blue',attrs=['bold']))
             print(colored(f'Action Input: {action_input}',color='blue',attrs=['bold']))
-        tool=self.tools[action_name]
-        if self.strategy=='screenshot':
-            if action_name=='GoTo Tool':
-                observation=await tool(page,**action_input)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Click Tool':
-                label=action_input.get('label_number')
-                observation=await tool(page,*self.find_element_by_label(state,label))
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Right Click Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                observation=await tool(page,*self.find_element_by_role_and_name(state,role,name))
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Type Tool':
-                label=action_input.get('label_number')
-                text=action_input.get('content')
-                observation=await tool(page,*self.find_element_by_label(state,label),text=text)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Scroll Tool':
-                direction=action_input.get('direction')
-                amount=int(action_input.get('amount'))
-                observation=await tool(page,direction,amount)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Wait Tool':
-                duration=int(action_input.get('duration'))
-                observation=await tool(page,duration)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Back Tool':
-                observation=await tool()
-                await page.wait_for_timeout(self.wait_time)
-            else:
-                raise Exception('Tool not found')
-        else:
-            if action_name=='GoTo Tool':
-                observation=await tool(page,**action_input)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Click Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                observation=await tool(page,*self.find_element_by_role_and_name(state,role,name))
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Right Click Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                observation=await tool(page,*self.find_element_by_role_and_name(state,role,name))
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Type Tool':
-                role=action_input.get('role')
-                name=action_input.get('name')
-                text=action_input.get('content')
-                observation=await tool(page,*self.find_element_by_role_and_name(state,role,name),text=text)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Scroll Tool':
-                direction=action_input.get('direction')
-                amount=int(action_input.get('amount'))
-                observation=await tool(page,direction,amount)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Wait Tool':
-                duration=int(action_input.get('duration'))
-                observation=await tool(page,duration)
-                await page.wait_for_timeout(self.wait_time)
-            elif action_name=='Back Tool':
-                observation=await tool()
-                await page.wait_for_timeout(self.wait_time)
-            else:
-                raise Exception('Tool not found')
-        
+        action_result=await self.registry.execute(action_name,action_input,self.context)
         if self.verbose:
-            print(colored(f'Observation: {observation}',color='green',attrs=['bold']))
-        await asyncio.sleep(10) #Wait for 10 seconds
-
-        if self.strategy=='screenshot':
-            state['messages'].pop() # Remove the last message for modification
-            last_message=state['messages'][-1]
-            if isinstance(last_message,ImageMessage):
-                text,_=last_message.content
-                state['messages'][-1]=HumanMessage(text)
-            await page.wait_for_load_state('domcontentloaded')
-            await page.evaluate(self.js_script)
-            cordinates=await page.evaluate('mark_page()')
-            if self.screenshot:
-                date_time=datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-                path=Path('./screenshots')
-                if not path.exists():
-                    path.mkdir(parents=True,exist_ok=True)
-                path=path.joinpath(f'screenshot_{date_time}.jpeg').as_posix()
-                bytes=await page.screenshot(path=path,type='jpeg',full_page=False)
-            else:
-                bytes=await page.screenshot(type='jpeg',full_page=False)
-            await page.evaluate('unmark_page()')
-            image_obj=b64encode(bytes).decode('utf-8')
-            bboxes=[{'element_type':bbox.get('elementType'),'label_number':bbox.get('label'),'x':bbox.get('x'),'y':bbox.get('y')} for bbox in cordinates]
-            ai_prompt=f'<Thought>{thought}</Thought>\n<Action-Name>{action_name}</Action-Name>\n<Action-Input>{json.dumps(action_input,indent=2)}</Action-Input>\n<Route>{route}</Route>'
-            user_prompt=f'<Observation>{observation}\n\nNow analyze the given screenshot for gathering information and decide whether to act or answer.</Observation>'
-            messages=[AIMessage(ai_prompt),ImageMessage(text=user_prompt,image_base_64=image_obj)]
-        elif self.strategy=='ally_tree':
-            state['messages'].pop() # Remove the last message for modification
-            last_message=state['messages'][-1]
-            if isinstance(last_message,HumanMessage):
-                text=f'<Observation>{state.get('previous_observation')}</Observation>'
-                state['messages'][-1]=HumanMessage(text)
-            snapshot=await page.accessibility.snapshot(interesting_only=True)
-            # print(snapshot)
-            ally_tree, bboxes =await build_a11y_tree(snapshot, page)
-            # print(ally_tree)
-            ai_prompt=f'<Thought>{thought}</Thought>\n<Action-Name>{action_name}</Action-Name>\n<Action-Input>{json.dumps(action_input,indent=2)}</Action-Input>\n<Route>{route}</Route>'
-            user_prompt=f'<Observation>{observation}\n\nNow analyze the A11y Tree for gathering information and decide whether to act or answer.\nAlly tree:\n{ally_tree}</Observation>'
-            messages=[AIMessage(ai_prompt),HumanMessage(user_prompt)]
-        else:
-            if self.screenshot:
-                date_time=datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-                path=Path('./screenshots')
-                if not path.exists():
-                    path.mkdir(parents=True,exist_ok=True)
-                path=path.joinpath(f'screenshot_{date_time}.jpeg').as_posix()
-                bytes=await page.screenshot(path=path,type='jpeg',full_page=False)
-            else:
-                bytes=await page.screenshot(type='jpeg',full_page=False)
-            image_obj=b64encode(bytes).decode('utf-8')
-            state['messages'].pop() # Remove the last message for modification
-            last_message=state['messages'][-1]
-            if isinstance(last_message,ImageMessage):
-                text,_=last_message.content
-                text=f'<Observation>{state.get('previous_observation')}</Observation>'
-                state['messages'][-1]=HumanMessage(text)
-            snapshot=await page.accessibility.snapshot(interesting_only=True)
-            # print(snapshot)
-            ally_tree, bboxes =await build_a11y_tree(snapshot, page)
-            # print(ally_tree)
-            ai_prompt=f'<Thought>{thought}</Thought>\n<Action-Name>{action_name}</Action-Name>\n<Action-Input>{json.dumps(action_input,indent=2)}</Action-Input>\n<Route>{route}</Route>'
-            user_prompt=f'<Observation>{observation}\n\nNow analyze the provided screenshot and A11y Tree ressembling the new state of the system and decide whether to act or answer.\nAlly tree:\n{ally_tree}</Observation>'
-            messages=[AIMessage(ai_prompt),ImageMessage(user_prompt,image_base_64=image_obj)]
-        return {**state,'agent_data':agent_data,'messages':messages,'bboxes':bboxes,'page':page,'previous_observation':observation}
-
-    def retrieve(self,state:AgentState):
-        state['messages'].pop()
-        agent_data=state.get('agent_data')
-        thought=agent_data.get('Thought')
-        agent_name=agent_data.get('Agent')
-        request=agent_data.get('Request')
-        route=agent_data.get('Route')
-        agent_response=self.memory.invoke(f'<Agent>{agent_name}</Agent>\n<Request>{request}</Request>')
-        ai_message=AIMessage(f'<Thought>{thought}</Thought>\n<Agent>{agent_name}</Agent>\n<Request>{request}</Request>\n<Route>{route}</Route>')
-        human_message=HumanMessage(f'<Response>{agent_response}</Response>')
-        messages=[ai_message,human_message]
-        return {**state,'messages':messages}
+            print(colored(f'Observation: {action_result.content}',color='green',attrs=['bold']))
+        state['messages'].pop() # Remove the last message for modification
+        last_message=state['messages'][-1] #ImageMessage/HumanMessage
+        if isinstance(last_message,ImageMessage):
+            state['messages'][-1]=HumanMessage(f'<Observation>{state.get('prev_observation')}</Observation>')
+        if self.verbose and self.token_usage:
+            print(f'Input Tokens: {self.llm.tokens.input} Output Tokens: {self.llm.tokens.output} Total Tokens: {self.llm.tokens.total}')
+        # Get the current browser state
+        browser_state=await self.context.get_state(use_vision=self.use_vision)
+        image_obj=browser_state.screenshot
+        # print('Tabs',browser_state.tabs_to_string())
+        # Redefining the AIMessage and adding the new observation
+        ai_prompt=self.ai_prompt.format(thought=thought,action_name=action_name,action_input=json.dumps(action_input,indent=2),route=route)
+        user_prompt=self.human_prompt.format(observation=action_result.content,current_url=browser_state.url,tabs=browser_state.tabs_to_string(),interactive_elements=browser_state.dom_state.elements_to_string())
+        messages=[AIMessage(ai_prompt),ImageMessage(text=user_prompt,image_obj=image_obj) if self.use_vision else HumanMessage(user_prompt)]
+        return {**state,'agent_data':agent_data,'messages':messages,'prev_observation':action_result.content}
 
     def final(self,state:AgentState):
+        "Give the final answer"
         agent_data=state.get('agent_data')
         final_answer=agent_data.get('Final Answer')
         if self.verbose:
             print(colored(f'Final Answer: {final_answer}',color='cyan',attrs=['bold']))
-        plan=agent_data.get('Plan')
-        return {**state,'output':final_answer,'Plan':plan}
-
+        return {**state,'output':final_answer}
     def controller(self,state:AgentState):
-        agent_data=state.get('agent_data')
-        return agent_data.get('Route').lower()
-    
+        return state.get('route').lower()
+
     def create_graph(self):
+        "Create the graph"
         graph=StateGraph(AgentState)
         graph.add_node('reason',self.reason)
         graph.add_node('action',self.action)
-        graph.add_node('retrieve',self.retrieve)
         graph.add_node('final',self.final)
 
         graph.add_edge(START,'reason')
         graph.add_conditional_edges('reason',self.controller)
-        graph.add_edge('action','retrieve')
         graph.add_edge('action','reason')
         graph.add_edge('final',END)
 
         return graph.compile(debug=False)
     
     async def async_invoke(self, input: str):
-        playwright=await async_playwright().start()
-        width,height=self.viewport
-        args=["--window-position=0,0",f"--window-size={width},{height}"]
-        if self.browser=='chromium':
-            browser=await playwright.chromium.launch(headless=self.headless,slow_mo=500,args=args)
-        elif self.browser=='firefox':
-            browser=await playwright.firefox.launch(headless=self.headless,slow_mo=500,args=args)
-        elif self.browser=='edge':
-            browser=await playwright.chromium.launch(channel='msedge',headless=self.headless,slow_mo=500,args=args)
-        else:
-            raise ValueError('Browser not found')
-        page=await browser.new_page()
+        actions_prompt=self.registry.actions_prompt()
+        current_datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        system_prompt=self.system_prompt.format(instructions=self.instructions,current_datetime=current_datetime,actions_prompt=actions_prompt)
+        human_prompt=f'Task: {input}'
+        messages=[SystemMessage(system_prompt),HumanMessage(human_prompt)]
         state={
             'input':input,
-            'page':page,
             'agent_data':{},
             'output':'',
-            'messages':[SystemMessage(self.system_prompt),HumanMessage(input)]
+            'messages':messages
         }
-        graph_response=await self.graph.ainvoke(state)
-        await page.close()
-        await browser.close()
-        await playwright.stop()
-        return graph_response
+        response=await self.graph.ainvoke(state)
+        await self.close()
+        return response.get('output')
         
     def invoke(self, input: str)->str:
-        return asyncio.run(self.async_invoke(input))
+        """
+        Invoke the agent to perform a task.
+        Args:
+            input (str): The input task
+        Returns:
+            str: The final answer
+        """
+        try:
+            # If there's no running event loop, use asyncio.run
+            return asyncio.run(self.async_invoke(input))
+        except RuntimeError:
+            nest_asyncio.apply()  # Allow nested event loops in notebooks
+            loop = asyncio.get_event_loop()
+            return loop.run_until_complete(self.async_invoke(input))
 
     def stream(self, input:str):
         pass
+
+    async def close(self):
+        '''Close the browser and context followed by clean up'''
+        try:
+            await self.context.close_session()
+            await self.browser.close_browser()
+        except Exception as e:
+            print('Failed to finish clean up')
+        finally:
+            self.context=None
+            self.browser=None
+
