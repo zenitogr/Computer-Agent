@@ -5,7 +5,6 @@ from operator import add
 class AgentState(TypedDict):
     input:str
     agent_data:dict
-    plan:str
     output:str
-    previous_observation:str
+    route:str
     messages:Annotated[list[BaseMessage],add]
