@@ -1,8 +1,6 @@
 from src.embedding import BaseEmbedding
 from httpx import Client
-from typing import Literal
-from requests import RequestException,HTTPError,ConnectionError
-import json
+from requests import HTTPError,ConnectionError
 
 class MistralEmbedding(BaseEmbedding):
     def embed(self, text):
@@ -23,4 +21,3 @@ class MistralEmbedding(BaseEmbedding):
             print(f'Error: {err.response.text}, Status Code: {err.response.status_code}')
         except ConnectionError as err:
             print(err)
-

@@ -1,4 +1,4 @@
-from requests import RequestException,HTTPError,ConnectionError
+from requests import HTTPError,ConnectionError
 from src.embedding import BaseEmbedding
 from httpx import Client
 from typing import Literal

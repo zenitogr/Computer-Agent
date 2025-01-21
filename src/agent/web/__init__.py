@@ -1,4 +1,4 @@
-from src.agent.web.tools import click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool,key_tool,extract_content_tool,download_tool,tab_tool,upload_tool,menu_tool
+from src.agent.web.tools import click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool,key_tool,extract_content_tool,download_tool,tab_tool,upload_tool,menu_tool,form_tool
 from src.agent.web.utils import read_markdown_file,extract_agent_data
 from src.message import SystemMessage,HumanMessage,ImageMessage,AIMessage
 from src.agent.web.browser import Browser,BrowserConfig
@@ -20,7 +20,7 @@ import asyncio
 import json
 
 main_tools=[
-    menu_tool,click_tool,
+    menu_tool,click_tool,form_tool,
     goto_tool,type_tool,scroll_tool,
     wait_tool,back_tool,key_tool,
     download_tool,tab_tool,upload_tool
@@ -47,7 +47,7 @@ class WebAgent(BaseAgent):
         self.human_prompt=read_markdown_file('./src/agent/web/prompt/human.md')
         self.browser=Browser(BrowserConfig(browser=browser,headless=headless,user_data_dir=Path(getcwd()).joinpath(f'./user_data/{browser}/{getuser()}').as_posix()))
         self.ai_prompt=read_markdown_file('./src/agent/web/prompt/ai.md')
-        self.instructions=self.get_instructions(instructions)
+        self.instructions=self.format_instructions(instructions)
         self.context=Context(self.browser,ContextConfig())
         self.max_iteration=max_iteration
         self.registry=Registry(main_tools+additional_tools)
@@ -58,7 +58,7 @@ class WebAgent(BaseAgent):
         self.llm=llm
         self.graph=self.create_graph()
 
-    def get_instructions(self,instructions):
+    def format_instructions(self,instructions):
         return '\n'.join([f'{i+1}. {instruction}' for (i,instruction) in enumerate(instructions)])
 
     async def reason(self,state:AgentState):
@@ -84,8 +84,9 @@ class WebAgent(BaseAgent):
             print(colored(f'Action Name: {action_name}',color='blue',attrs=['bold']))
             print(colored(f'Action Input: {action_input}',color='blue',attrs=['bold']))
         action_result=await self.registry.execute(action_name,action_input,self.context)
+        observation=action_result.content
         if self.verbose:
-            print(colored(f'Observation: {action_result.content}',color='green',attrs=['bold']))
+            print(colored(f'Observation: {observation}',color='green',attrs=['bold']))
         state['messages'].pop() # Remove the last message for modification
         last_message=state['messages'][-1] #ImageMessage/HumanMessage
         if isinstance(last_message,ImageMessage):
@@ -98,9 +99,9 @@ class WebAgent(BaseAgent):
         # print('Tabs',browser_state.tabs_to_string())
         # Redefining the AIMessage and adding the new observation
         ai_prompt=self.ai_prompt.format(thought=thought,action_name=action_name,action_input=json.dumps(action_input,indent=2),route=route)
-        user_prompt=self.human_prompt.format(observation=action_result.content,current_url=browser_state.url,tabs=browser_state.tabs_to_string(),interactive_elements=browser_state.dom_state.elements_to_string())
+        user_prompt=self.human_prompt.format(observation=observation,current_url=browser_state.url,tabs=browser_state.tabs_to_string(),interactive_elements=browser_state.dom_state.elements_to_string())
         messages=[AIMessage(ai_prompt),ImageMessage(text=user_prompt,image_obj=image_obj) if self.use_vision else HumanMessage(user_prompt)]
-        return {**state,'agent_data':agent_data,'messages':messages,'prev_observation':action_result.content}
+        return {**state,'agent_data':agent_data,'messages':messages,'prev_observation':observation}
 
     def final(self,state:AgentState):
         "Give the final answer"

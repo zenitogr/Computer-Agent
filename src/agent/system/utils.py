@@ -6,7 +6,7 @@ def read_markdown_file(file_path: str) -> str:
         markdown_content = f.read()
     return markdown_content
 
-def extract_llm_response(text):
+def extract_agent_data(text):
     # Dictionary to store extracted values
     result = {}
     # Check if it's Option 1 (Action-based)
@@ -25,7 +25,7 @@ def extract_llm_response(text):
             action_input_str = action_input_match.group(1).strip()
             try:
                 # Convert string to dictionary safely using ast.literal_eval
-                result['Action Input'] = ast.literal_eval(action_input_str)
+                result['Action Input'] = ast.literal_eval(action_input_str.replace("{{","{").replace("}}","}"))
             except (ValueError, SyntaxError):
                 # If there's an issue with conversion, store it as raw string
                 result['Action Input'] = action_input_str
@@ -33,7 +33,6 @@ def extract_llm_response(text):
         route_match = re.search(r"<Route>(.*?)<\/Route>", text, re.DOTALL)
         if route_match:
             result['Route'] = route_match.group(1).strip()
-
     # Check if it's Option 2 (Final Answer)
     elif re.search(r"<Final-Answer>", text):
         # Extract Thought
@@ -48,63 +47,4 @@ def extract_llm_response(text):
         route_match = re.search(r"<Route>(.*?)<\/Route>", text, re.DOTALL)
         if route_match:
             result['Route'] = route_match.group(1).strip()
-        # Extract Plan from Option 2
-        plan_match = re.search(r"<Plan>(.*?)<\/Plan>", text, re.DOTALL)
-        if plan_match:
-            result['Plan'] = plan_match.group(1).strip()
-    
-     # Check if it's Option 3 (Retrieving Information from Memory)
-    elif re.search(r"<Agent>", text):
-        # Extract Thought
-        thought_match = re.search(r"<Thought>(.*?)<\/Thought>", text, re.DOTALL)
-        if thought_match:
-            result['Thought'] = thought_match.group(1).strip()
-
-        # Extract Agent
-        agent_match = re.search(r"<Agent>(.*?)<\/Agent>", text, re.DOTALL)
-        if agent_match:
-            result['Agent'] = agent_match.group(1).strip()
-
-        # Extract Request (the specific information being requested)
-        request_match = re.search(r"<Request>(.*?)<\/Request>", text, re.DOTALL)
-        if request_match:
-            result['Request'] = request_match.group(1).strip()
-
-        # Extract Route (should always be 'Retrieve' in Option 3)
-        route_match = re.search(r"<Route>(.*?)<\/Route>", text, re.DOTALL)
-        if route_match:
-            result['Route'] = route_match.group(1).strip()
     return result
-
-def parse_ally_tree(tree_str):
-    tree_elements = []
-    # Split the string by lines
-    lines = tree_str.strip().split('\n')
-    for line in lines:
-        # Extract role and name from the line (assuming format like: "Role: ButtonControl, Name: Close")
-        match = re.search(r"Role:\s*(\w+Control),\s*Name:\s*(.+)", line.strip())
-        if match:
-            role = match.group(1).strip()
-            name = match.group(2).strip()
-            tree_elements.append({
-                'role': role,
-                'name': name
-            })
-    return tree_elements
-
-def find_missing_elements(original_tree, updated_tree):
-    original_set = {(el['role'], el['name']) for el in original_tree}
-    updated_set = {(el['role'], el['name']) for el in updated_tree}
-    # Find elements that are in the updated tree but not in the original tree
-    missing_elements = updated_set - original_set
-    return missing_elements
-
-
-def create_mapping_from_missing_elements(missing_elements, ocr_data):
-    mapping = []
-    for role, name in missing_elements:
-        # If the name exists in OCR data, create the mapping
-        if name in ocr_data:
-            x,y=ocr_data[name][0],ocr_data[name][1]
-            mapping.append(dict(role=role, name=name, x=x, y=y))
-    return mapping
