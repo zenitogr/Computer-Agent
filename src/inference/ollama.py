@@ -42,7 +42,8 @@ class ChatOllama(BaseInference):
             response.raise_for_status()
             json_object=response.json()
             message=json_object['message']
-            self.tokens=Token(json_object['prompt_eval_count'],json_object['eval_count'],json_object['prompt_eval_count']+json_object['eval_count'])
+            input,output,total=json_object['prompt_eval_count'],json_object['eval_count'],json_object['prompt_eval_count']+json_object['eval_count']
+            self.tokens=Token(input=input,output=output,total=total)
             if model:
                 return model.model_validate_json(message.get('content'))
             if json:
@@ -116,7 +117,8 @@ class Ollama(BaseInference):
             response=post(url=url,json=payload,headers=headers)
             response.raise_for_status()
             json_object=response.json()
-            self.tokens=Token(json_object['prompt_eval_count'],json_object['eval_count'],json_object['prompt_eval_count']+json_object['eval_count'])
+            input,output,total=json_object['prompt_eval_count'],json_object['eval_count'],json_object['prompt_eval_count']+json_object['eval_count']
+            self.tokens=Token(input=input,output=output,total=total)
             if model:
                 return model.model_validate_json(json_object.get('response'))
             if json:

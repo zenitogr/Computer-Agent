@@ -30,7 +30,7 @@ class BaseInference(ABC):
         self.temperature=temperature
         self.headers={'Content-Type': 'application/json'}
         self.structured_output_prompt=structured_output_prompt
-        self.tokens:Token=Token(0,0,0)
+        self.tokens:Token=Token(input=0,output=0,total=0)
 
     @abstractmethod
     def invoke(self,messages:list[dict],json:bool=False,model:BaseModel=None)->AIMessage|BaseModel:

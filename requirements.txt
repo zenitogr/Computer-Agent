@@ -11,3 +11,4 @@ pygetwindow
 pillow
 nest_asyncio
 ratelimit
+mainContentExtractor

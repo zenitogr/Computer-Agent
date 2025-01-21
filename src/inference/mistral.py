@@ -72,7 +72,8 @@ class ChatMistral(BaseInference):
                 raise Exception(json_object['error']['message'])
             message=json_object['choices'][0]['message']
             usage_metadata=json_object['usage']
-            self.tokens=Token(usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens'])
+            input,output,total=usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens']
+            self.tokens=Token(input=input,output=output,total=total)
             if model:
                 return model.model_validate_json(message.get('content'))
             if json:
@@ -150,7 +151,8 @@ class ChatMistral(BaseInference):
                 raise Exception(json_object['error']['message'])
             message=json_object['choices'][0]['message']
             usage_metadata=json_object['usage']
-            self.tokens=Token(usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens'])
+            input,output,total=usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens']
+            self.tokens=Token(input=input,output=output,total=total)
             if model:
                 return model.model_validate_json(message.get('content'))
             if json:

@@ -69,14 +69,15 @@ class ChatGroq(BaseInference):
             } for tool in self.tools]
         try:
             with Client() as client:
-                response=client.post(url=url,json=payload,headers=headers)
+                response=client.post(url=url,json=payload,headers=headers,timeout=None)
             json_object=response.json()
             # print(json_object)
             if json_object.get('error'):
                 raise HTTPError(json_object['error']['message'])
             message=json_object['choices'][0]['message']
             usage_metadata=json_object['usage']
-            self.tokens=Token(usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens'])
+            input,output,total=usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens']
+            self.tokens=Token(input=input,output=output,total=total)
             if model:
                 return model.model_validate_json(message.get('content'))
             if json:
@@ -149,14 +150,15 @@ class ChatGroq(BaseInference):
             } for tool in self.tools]
         try:
             async with AsyncClient() as client:
-                response=await client.post(url=url,json=payload,headers=headers)
+                response=await client.post(url=url,json=payload,headers=headers,timeout=None)
             json_object=response.json()
             # print(json_object)
             if json_object.get('error'):
                 raise HTTPError(json_object['error']['message'])
             message=json_object['choices'][0]['message']
             usage_metadata=json_object['usage']
-            self.tokens=Token(usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens'])
+            input,output,total=usage_metadata['prompt_tokens'],usage_metadata['completion_tokens'],usage_metadata['total_tokens']
+            self.tokens=Token(input=input,output=output,total=total)
             if model:
                 return model.model_validate_json(message.get('content'))
             if json:

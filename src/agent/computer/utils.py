@@ -16,7 +16,7 @@ def extract_agent_data(response: str) -> dict:
     
     # Regular expressions for different parts of the response
     thought_regex = re.compile(r'<Thought>\s*(.*?)\s*</Thought>', re.DOTALL)
-    agent_name_regex = re.compile(r'<Agent>\s*(.*?)\s*</Agent>', re.DOTALL)
+    agent_name_regex = re.compile(r'<Agent-Name>\s*(.*?)\s*</Agent-Name>', re.DOTALL)
     request_regex = re.compile(r'<Request>\s*(.*?)\s*</Request>', re.DOTALL)
     response_regex = re.compile(r'<Response>\s*(.*?)\s*</Response>', re.DOTALL)
     final_answer_regex = re.compile(r'<Final-Answer>\s*(.*?)\s*</Final-Answer>', re.DOTALL)

@@ -89,11 +89,13 @@ class ChatGemini(BaseInference):
             with Client() as client:
                 response=client.post(url=url,headers=headers,json=payload,params=params,timeout=None)
             json_obj=response.json()
+            # print(json_obj)
             if json_obj.get('error'):
                 raise Exception(json_obj['error']['message'])
             message=json_obj['candidates'][0]['content']['parts'][0]
-            usage_meta_data=json_obj['usageMetadata']
-            self.tokens=Token(usage_meta_data['promptTokenCount'],usage_meta_data['candidatesTokenCount'],usage_meta_data['totalTokenCount'])
+            usage_metadata=json_obj['usageMetadata']
+            input,output,total=usage_metadata['promptTokenCount'],usage_metadata['candidatesTokenCount'],usage_metadata['totalTokenCount']
+            self.tokens=Token(input=input,output=output,total=total)
             # print(message)
             if model:
                 return model.model_validate_json(message['text'])
@@ -187,11 +189,13 @@ class ChatGemini(BaseInference):
             async with AsyncClient() as client:
                 response=await client.post(url=url,headers=headers,json=payload,params=params,timeout=None)
             json_obj=response.json()
+            # print(json_obj)
             if json_obj.get('error'):
                 raise Exception(json_obj['error']['message'])
             message=json_obj['candidates'][0]['content']['parts'][0]
-            usage_meta_data=json_obj['usageMetadata']
-            self.tokens=Token(usage_meta_data['promptTokenCount'],usage_meta_data['candidatesTokenCount'],usage_meta_data['totalTokenCount'])
+            usage_metadata=json_obj['usageMetadata']
+            input,output,total=usage_metadata['promptTokenCount'],usage_metadata['candidatesTokenCount'],usage_metadata['totalTokenCount']
+            self.tokens=Token(input=input,output=output,total=total)
             if model:
                 return model.model_validate_json(message['text'])
             if json:

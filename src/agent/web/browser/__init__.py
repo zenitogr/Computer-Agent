@@ -7,7 +7,6 @@ class Browser:
         self.playwright:Playwright = None
         self.config = config
         self.playwright_browser:PlaywrightBrowser = None
-        self.loop = asyncio.get_event_loop()
 
     async def __aenter__(self):
         await self.init_browser()

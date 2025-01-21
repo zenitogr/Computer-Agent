@@ -28,13 +28,14 @@ class ComputerAgent(BaseAgent):
     def reason(self,state:AgentState):    
         message=self.llm.invoke(state.get('messages'))
         agent_data=extract_agent_data(message.content)
+        # print(message.content)
         thought=agent_data.get('Thought')
         route=agent_data.get('Route')
-        agent_name=agent_data.get('Agent Name').replace('agent','')
+        agent_name=agent_data.get('Agent Name')
         agent_request=agent_data.get('Request')
         if self.verbose:
             print(colored(f'Thought: {thought}',color='light_magenta',attrs=['bold']))
-        return {**state,'agent_data': agent_data,'messages':[message],'route':route,'agent_name':agent_name.strip().lower(),'agent_request':agent_request}
+        return {**state,'agent_data': agent_data,'messages':[message],'route':route,'agent_name':agent_name,'agent_request':agent_request}
     
     def web(self,state:AgentState):
         if self.verbose:
@@ -44,7 +45,7 @@ class ComputerAgent(BaseAgent):
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
         if self.verbose:
-            print(colored(f'Agent Response: {agent_response}',color='cyan',attrs=['bold']))
+            print(colored(f'Agent Response: {agent_response}',color='blue',attrs=['bold']))
         return {**state,'messages':[message],'agent_response':agent_response}
 
     def terminal(self,state:AgentState):
@@ -55,7 +56,7 @@ class ComputerAgent(BaseAgent):
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
         if self.verbose:
-            print(colored(f'Agent Response: {agent_response}',color='cyan',attrs=['bold']))
+            print(colored(f'Agent Response: {agent_response}',color='blue',attrs=['bold']))
         return {**state,'messages':[message],'agent_response':agent_response}
 
     def system(self,state:AgentState):
@@ -66,21 +67,22 @@ class ComputerAgent(BaseAgent):
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
         if self.verbose:
-            print(colored(f'Agent Response: {agent_response}',color='cyan',attrs=['bold']))
+            print(colored(f'Agent Response: {agent_response}',color='blue',attrs=['bold']))
         return {**state,'messages':[message],'agent_response':agent_response}
 
     def final(self,state:AgentState):
         agent_data=state.get('agent_data')
         final_answer=agent_data.get('Final Answer')
         if self.verbose:
-            print(colored(f'Final Answer: {final_answer}',color='cyan',attrs=['bold']))
+            print(colored(f'Final Answer: {final_answer}',color='blue',attrs=['bold']))
         return {**state,'output':final_answer}
 
     def controller(self,state:AgentState):
         if self.iteration<self.max_iteration:
             self.iteration+=1
             if state.get('route').lower()=='agent':
-                return state.get('agent_name')
+                agent_name=state.get('agent_name')
+                return agent_name.lower()
             else:
                 return 'final'
         else:
@@ -99,7 +101,6 @@ class ComputerAgent(BaseAgent):
         workflow.add_edge('web','reason')
         workflow.add_edge('terminal','reason')
         workflow.add_edge('system','reason')
-        workflow.add_edge('reason','final')
         workflow.add_edge('final',END)
 
         return workflow.compile(debug=False)
