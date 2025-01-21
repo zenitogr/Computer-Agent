@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
-llm=ChatGemini(model='gemini-1.5-flash',api_key=os.getenv('GOOGLE_API_KEY'))
-agent=ComputerAgent(llm=llm,verbose=True)
+api_key = os.getenv('GOOGLE_API_KEY')
+llm=ChatGemini(model='gemini-2.0-flash-exp',api_key=api_key)
+agent=ComputerAgent(llm=llm,use_vision=True,verbose=True)
 user_query=input('Enter your query: ')
 agent_response=agent.invoke(user_query)
 print(agent_response)

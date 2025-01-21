@@ -21,6 +21,8 @@ tools=[
 
 class TerminalAgent(BaseAgent):
     def __init__(self,instructions:list[str]=[],additional_tools:list[Tool]=[],llm:BaseInference=None,verbose:bool=False,max_iteration:int=10,token_usage:bool=False):
+        self.name='Terminal Agent'
+        self.description='The Terminal Agent is an AI-powered automation tool designed to interact with the terminal or command line interface. It can execute shell commands, run scripts, and perform other terminal-based tasks.'
         self.llm=llm
         self.verbose=verbose
         self.max_iteration=max_iteration

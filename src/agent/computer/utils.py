@@ -5,15 +5,10 @@ def read_markdown_file(file_path: str) -> str:
         markdown_content = f.read()
     return markdown_content
 
-def extract_llm_response(response: str) -> dict:
-    """
-    Function to handle the responses from Option 1, Option 2, and Option 3
-    from the Computer Agent and extract relevant information.
-    """
+def extract_agent_data(response: str) -> dict:
     result = {
         'Thought': None,
-        'Agent': None,
-        'Response': None,
+        'Agent Name': None,
         'Request': None,
         'Final Answer': None,
         'Route': None
@@ -21,7 +16,7 @@ def extract_llm_response(response: str) -> dict:
     
     # Regular expressions for different parts of the response
     thought_regex = re.compile(r'<Thought>\s*(.*?)\s*</Thought>', re.DOTALL)
-    agent_regex = re.compile(r'<Agent>\s*(.*?)\s*</Agent>', re.DOTALL)
+    agent_name_regex = re.compile(r'<Agent>\s*(.*?)\s*</Agent>', re.DOTALL)
     request_regex = re.compile(r'<Request>\s*(.*?)\s*</Request>', re.DOTALL)
     response_regex = re.compile(r'<Response>\s*(.*?)\s*</Response>', re.DOTALL)
     final_answer_regex = re.compile(r'<Final-Answer>\s*(.*?)\s*</Final-Answer>', re.DOTALL)
@@ -33,9 +28,9 @@ def extract_llm_response(response: str) -> dict:
         result['Thought'] = thought_match.group(1).strip()
     
     # Extract Agent (Option 1)
-    agent_match = agent_regex.search(response)
-    if agent_match:
-        result['Agent'] = agent_match.group(1).strip()
+    agent_name_match = agent_name_regex.search(response)
+    if agent_name_match:
+        result['Agent Name'] = agent_name_match.group(1).strip()
 
     # Extract Response (Option 1)
     response_match = response_regex.search(response)

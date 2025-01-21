@@ -26,6 +26,17 @@ tools=[
 
 class SystemAgent(BaseAgent):
     def __init__(self,instructions:list[str]=[],llm:BaseInference=None,use_vision:bool=False,max_iteration:int=10,verbose:bool=False,token_usage:bool=False) -> None:
+        """
+        Initialize a SystemAgent instance.
+
+        Args:
+            instructions (list[str], optional): A list of instructions for the agent to follow. Defaults to an empty list.
+            llm (BaseInference, optional): The language model inference engine used by the agent. Defaults to None.
+            use_vision (bool, optional): Whether to use vision capabilities for system interaction. Defaults to False.
+            max_iteration (int, optional): The maximum number of iterations the agent should perform. Defaults to 10.
+            verbose (bool, optional): Whether to enable verbose to show agent's flow. Defaults to False.
+            token_usage (bool, optional): Whether to track token usage. Defaults to False.
+        """
         self.name='System Agent'
         self.description='The System Agent is an AI-powered automation tool designed to interact with the operating system. It simulates human actions, such as opening applications, clicking buttons, typing, scrolling, and performing other system-level tasks.'
         self.registry=Registry(tools)

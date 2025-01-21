@@ -7,7 +7,7 @@ tenacity
 pyautogui
 playwright
 uiautomation
-opencv-python
+pygetwindow
 pillow
-easyocr
-ultralytics
+nest_asyncio
+ratelimit
