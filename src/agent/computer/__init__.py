@@ -10,12 +10,13 @@ from src.agent import BaseAgent
 from termcolor import colored
 from datetime import datetime
 from getpass import getuser
+from pathlib import Path
 import platform
 
 class ComputerAgent(BaseAgent):
     def __init__(self,llm:BaseInference=None,use_vision:bool=False,max_iteration:int=10,token_usage:bool=False,verbose:bool=False):
         self.name='Computer Agent'
-        self.description='This agent tries to simulate a human using a computer'
+        self.description='This agent tries to simulate a human using the computer'
         self.system_prompt=read_markdown_file('src/agent/computer/prompt.md')
         self.max_iteration=max_iteration
         self.iteration=0
@@ -63,6 +64,7 @@ class ComputerAgent(BaseAgent):
         if self.verbose:
             print(colored(f'Agent Name: System Agent',color='yellow',attrs=['bold']))
             print(colored(f'Agent Request: {state.get("agent_request")}',color='green',attrs=['bold']))
+
         agent=SystemAgent(llm=self.llm,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
@@ -106,9 +108,13 @@ class ComputerAgent(BaseAgent):
         return workflow.compile(debug=False)
 
     def invoke(self,input:str):
+       if self.verbose:
+            print(f'Entering '+colored(self.name,'black','on_white'))
        parameters={
-           'user': getuser(),
-           'os': platform.system(),
+           'username': getuser(),
+           'os': platform.platform(),
+           'pc_name': platform.node(),
+           'home_dir': Path.home().as_posix(),
            'datetime': datetime.now().strftime('%Y-%m-%d'),
        }
        state={
@@ -119,7 +125,7 @@ class ComputerAgent(BaseAgent):
            'route':'',
            'agent_name':'',
            'agent_request':'',
-            'agent_response':''
+           'agent_response':''
        }
        agent_response=self.graph.invoke(state)
        return agent_response.get('output')

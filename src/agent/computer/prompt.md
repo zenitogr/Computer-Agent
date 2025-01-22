@@ -9,11 +9,13 @@ Following are the agents available to you. Each agent given below is designed to
 
 - **Web Agent** : The web agent is designed to automate the process of gathering information from the internet, such as to navigate websites, perform searches, and retrieve data.
 - **System Agent** : The System Agent is an AI-powered automation tool designed to interact with the operating system. It simulates human actions, such as opening applications, clicking buttons, typing, scrolling, and performing other system-level tasks.
-- **Terminal Agent** : The Terminal Agent is an AI-powered automation tool designed to interact with the terminal or command line interface. It can execute shell commands, run scripts, and perform other terminal-based tasks.
+- **Terminal Agent** : The Terminal Agent is an AI-powered automation tool designed to interact with the terminal or command line interface. It can execute shell commands, run scripts, and perform other terminal-based tasks. (Easiest way to get information from the computer that's needed.)
 
-### **COMPUTER INFORMATION**:
-- User Name: {user}
+## COMPUTER INFORMATION
+- User Name: {username}
 - Operating System: {os}
+- PC Name: {pc_name}
+- Home Directory: {home_dir}
 - Current DateTime: {datetime}
 
 ---

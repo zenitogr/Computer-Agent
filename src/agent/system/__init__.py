@@ -27,7 +27,7 @@ tools=[
 class SystemAgent(BaseAgent):
     def __init__(self,instructions:list[str]=[],llm:BaseInference=None,use_vision:bool=False,max_iteration:int=10,verbose:bool=False,token_usage:bool=False) -> None:
         """
-        Initialize a SystemAgent instance.
+        Initialize a System Agent instance.
 
         Args:
             instructions (list[str], optional): A list of instructions for the agent to follow. Defaults to an empty list.
@@ -122,6 +122,8 @@ class SystemAgent(BaseAgent):
         return graph.compile(debug=False)
 
     def invoke(self,input:str):
+        if self.verbose:
+            print(f'Entering '+colored(self.name,'black','on_white'))
         system_prompt=self.system_prompt.format(**{
             'instructions':self.instructions,
             'current_datetime':datetime.now().strftime('%Y-%m-%d %H:%M:%S'),

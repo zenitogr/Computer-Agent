@@ -128,6 +128,8 @@ class WebAgent(BaseAgent):
         return graph.compile(debug=False)
     
     async def async_invoke(self, input: str):
+        if self.verbose:
+            print(f'Entering '+colored(self.name,'black','on_white'))
         actions_prompt=self.registry.actions_prompt()
         current_datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         system_prompt=self.system_prompt.format(instructions=self.instructions,current_datetime=current_datetime,actions_prompt=actions_prompt)
