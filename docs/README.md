@@ -60,34 +60,42 @@ The system is structured around the following agents, each with a specialized ro
    Enter your query: <your query goes here>
    ```
 
-## Example Interaction
+## Example
+
+## Find the weather of a location and write in notepad.
 
 ```plaintext
-Enter your query: What it time now in US               
-Thought: I need to find the current time in the US. I can use the web agent to search for this information.
+Entering Computer Agent
+Thought: First, I need to get the weather information for Singapore. I can use the Web Agent for this task. Once I have the weather information, I'll use the System Agent to open Notepad and write the information into it.
 Agent Name: Web Agent
-Agent Request: What is the current time in the US?
-Thought: I need to find the current time in the US. I can use Google to search for this information. I will open a new tab and navigate to google.com.
-Action Name: Tab Tool
-Action Input: {'mode': 'open'}
-Observation: Opened new tab and switched to it
-Thought: I have opened a new tab. Now I need to navigate to google.com to perform the search.
+Agent Request: Search for the current weather in Singapore and provide the information.
+Entering Web Agent
+Thought: I need to search for the current weather in Singapore. I will use the search engine to find this information. I will start by going to google.com.
 Action Name: GoTo Tool
 Action Input: {'url': 'https://www.google.com'}
 Observation: Navigated to https://www.google.com
-Thought: I am on the google homepage. I need to type my query in the search box which is element with index 6 and then click on the google search button which is element with index 10.
+Thought: I'm on the Google homepage. I need to type "current weather in Singapore" in the search box and then click the Google Search button.
 Action Name: Type Tool
-Action Input: {'index': 6, 'text': 'current time in the US'}
-Observation: Typed current time in the US in element 6
-Thought: I have typed the query in the search box. Now I will click on the Google Search button which is element with index 21 to perform the search.
+Action Input: {'index': 6, 'text': 'current weather in Singapore'}
+Observation: Typed current weather in Singapore in element 6
+Thought: I have typed the query in the search box. Now I need to click on the Google Search button to get the results.  
 Action Name: Click Tool
 Action Input: {'index': 21}
 Observation: Clicked element 21
-Thought: The current time in Washington, D.C., USA is 1:41 pm on Tuesday, 21 January 2025 (GMT-5). I have the answer from the search results. I can now provide the final answer.
-Final Answer: The current time in Washington, D.C., USA is 1:41 pm on Tuesday, 21 January 2025 (GMT-5).
-Agent Response: The current time in Washington, D.C., USA is 1:41 pm on Tuesday, 21 January 2025 (GMT-5).
-Thought: I have found the current time in Washington, D.C., USA. This should be sufficient to answer the user's question about the time in the US.
-Final Answer: The current time in Washington, D.C., USA is 1:41 pm on Tuesday, 21 January 2025 (GMT-5).
+Thought: I have successfully searched for the current weather in Singapore. The current temperature is 28 degrees Celsius, with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h. I can provide this information to the user.
+Final Answer: The current weather in Singapore is 28 degrees Celsius with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h.
+Agent Response: The current weather in Singapore is 28 degrees Celsius with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h.
+Thought: Now that I have the weather information, I need to open Notepad and write the weather information into it. I will use the System Agent for this task.
+Agent Name: System Agent
+Agent Request: Open Notepad. Then type the following: "The current weather in Singapore is 28 degrees Celsius with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h."
+Entering System Agent
+Thought: First, I need to open Notepad. I will use the search bar to find and open it.
+Action Name: Click Tool
+Action Input: {'index': 2, 'button': 'left'}
+Final Answer: The text "The current weather in Singapore is 28 degrees Celsius with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h." has been typed into Notepad.            
+Agent Response: The text "The current weather in Singapore is 28 degrees Celsius with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h." has been typed into Notepad.
+Thought: I have successfully retrieved the weather information using the Web Agent and then written it into Notepad using the System Agent. The task is complete.
+Final Answer: The weather information for Singapore has been written into notepad. The current weather in Singapore is 28 degrees Celsius with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h
 ```
 
 ## Future Directions

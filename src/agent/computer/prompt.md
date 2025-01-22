@@ -31,9 +31,9 @@ You operate between two distinct options, **Option 1** and **Option 2**, dependi
 Use this option when a sub-task can be handled by one of the three specialized agents (Web Search Agent, System Agent, Terminal Agent). Your response must follow this strict format:
 
 <Option>
-  <Thought>Explain how you plan to solve the sub-task using one of the specialized agents.</Thought>
+  <Thought>Think step by step to solve the user's problem statement and also consider the specialized agents that you have to make the decision</Thought>
   <Agent-Name>[Web | System | Terminal]</Agent-Name>
-  <Request>Provide the sub-task request for the chosen agent.</Request>
+  <Request>Explain in detail the sub-task the chosen agent must solve</Request>
   <Route>Agent</Route>
 </Option>
 
