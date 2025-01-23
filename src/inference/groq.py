@@ -9,8 +9,8 @@ from typing import Generator
 from typing import Literal
 from json import loads
 from uuid import uuid4
+import mimetypes
 import requests
-import base64
 
 class ChatGroq(BaseInference):
     @sleep_and_retry
@@ -222,24 +222,25 @@ class AudioGroq(BaseInference):
     def __init__(self,mode:Literal['transcriptions','translations']='transcriptions', model: str = '', api_key: str = '', base_url: str = '', temperature: float = 0.5):
         self.mode=mode
         super().__init__(model, api_key, base_url, temperature)
-    def invoke(self,file:str='', language:str='en', json:bool=False)->AIMessage:
+
+    def invoke(self,filename:str='', language:str='en', json:bool=False)->AIMessage:
         headers={'Authorization': f'Bearer {self.api_key}'}
         temperature=self.temperature
         url=self.base_url or f"https://api.groq.com/openai/v1/audio/{self.mode}"
-        payload={
+        data={
             "model": self.model,
             "temperature": temperature,
-            "response_format": {
-                "type": "json_object" if json else "text"
-            },
+            "response_format": "json_object" if json else "text",
             "language": language
         }
+        # Get the MIME type for the file
+        mime_type, _ = mimetypes.guess_type(filename)
         files={
-            'file': self.__read_audio(file)
+            'file': (filename,self.__read_audio(filename),mime_type)
         }
         try:
             with Client() as client:
-                response=client.post(url=url,json=payload,files=files,headers=headers)
+                response=client.post(url=url,data=data,files=files,headers=headers,timeout=None)
             response.raise_for_status()
             if json:
                 content=loads(response.text)['text']
@@ -253,10 +254,16 @@ class AudioGroq(BaseInference):
             print(err)
         exit()
     
-    def __read_audio(file_name:str):
+    def __read_audio(self,file_name:str):
         with open(file_name,'rb') as f:
             audio_data=f.read()
-        return base64.b64encode(audio_data).decode('utf-8')
+        return audio_data
+    
+    def async_invoke(self, messages:BaseMessage=[]):
+        pass
+    
+    def stream(self, messages:BaseMessage=[]):
+        pass
     
     def available_models(self):
         url='https://api.groq.com/openai/v1/models'
