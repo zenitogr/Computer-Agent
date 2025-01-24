@@ -19,6 +19,7 @@ if mode=='text':
 elif mode=='voice':
     speech=Speech(llm=audio_llm)
     user_query=speech.invoke()
+    print(f'Enter your query: {user_query.content}')
 else:
     raise Exception('Invalid mode of input. Please enter either text or voice.')
 agent_response=agent.invoke(user_query)
