@@ -134,8 +134,11 @@ class SystemAgent(BaseAgent):
         })
         desktop_state=self.desktop.get_state(use_vision=self.use_vision)
         image_obj=desktop_state.screenshot
-        human_prompt=self.human_prompt.format(observation="No Action",active_app=desktop_state.active_app,apps=desktop_state.apps_to_string(),interactive_elements=desktop_state.tree_state.elements_to_string())
-        messages=[SystemMessage(system_prompt)]+[HumanMessage(f'Task: {input}\n'),ImageMessage(text=human_prompt,image_obj=image_obj)] if self.use_vision else [HumanMessage(f'Task: {input}\n'),HumanMessage(human_prompt)]
+        interactive_elements=desktop_state.tree_state.elements_to_string()
+        apps=desktop_state.apps_to_string()
+        active_app=desktop_state.active_app
+        human_prompt=self.human_prompt.format(observation="No Action",active_app=active_app,apps=apps,interactive_elements=interactive_elements)
+        messages=[SystemMessage(system_prompt),HumanMessage(f'Task: {input}')]+[ImageMessage(text=human_prompt,image_obj=image_obj) if self.use_vision else HumanMessage(human_prompt)]
         state={
             'input':input,
             'agent_data':{},
