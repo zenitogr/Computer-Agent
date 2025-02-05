@@ -13,7 +13,7 @@ llm=ChatGemini(model='gemini-2.0-flash-exp',api_key=google_api_key,temperature=0
 # llm=ChatGroq(model='deepseek-r1-distill-llama-70b',api_key=groq_api_key,temperature=0)
 audio_llm=AudioGroq(model='whisper-large-v3',mode='translations',api_key=groq_api_key,temperature=0)
 
-agent=ComputerAgent(llm=llm,use_vision=True,verbose=True)
+agent=ComputerAgent(llm=llm,use_vision=False,verbose=True)
 mode=input('Enter the mode of input (text/voice): ')
 if mode=='text':
     user_query=input('Enter your query: ')
