@@ -12,3 +12,6 @@ pillow
 nest_asyncio
 ratelimit
 mainContentExtractor
+pyaudio
+keyboard
+pydb

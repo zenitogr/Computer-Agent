@@ -14,7 +14,7 @@ class BrowserState:
 	url:str=''
 	title:str=''
 	tabs:list[Tab]=field(default_factory=list)
-	screenshot:Optional[bytes]=None
+	screenshot:Optional[str]=None
 	dom_state:DOMState=field(default_factory=DOMState([],{}))
 	
 	def tabs_to_string(self)->str:

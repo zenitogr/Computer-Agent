@@ -1,58 +1,43 @@
 from src.agent.web.tools import click_tool,goto_tool,type_tool,scroll_tool,wait_tool,back_tool,key_tool,extract_content_tool,download_tool,tab_tool,upload_tool,menu_tool,form_tool
-from src.agent.web.utils import read_markdown_file,extract_agent_data
 from src.message import SystemMessage,HumanMessage,ImageMessage,AIMessage
+from src.agent.web.utils import read_markdown_file,extract_agent_data
 from src.agent.web.browser import Browser,BrowserConfig
 from src.agent.web.context import Context,ContextConfig
 from langgraph.graph import StateGraph,END,START
+from src.memory.episodic import EpisodicMemory
 from src.agent.web.registry import Registry
 from src.agent.web.state import AgentState
 from src.inference import BaseInference
 from src.agent import BaseAgent
 from datetime import datetime
 from termcolor import colored
-from getpass import getuser
-from typing import Literal
 from src.tool import Tool
-from pathlib import Path
-from os import getcwd
 import nest_asyncio
 import asyncio
 import json
 
 main_tools=[
-    menu_tool,click_tool,form_tool,
-    goto_tool,type_tool,scroll_tool,
-    wait_tool,back_tool,key_tool,
-    download_tool,tab_tool,upload_tool
+    click_tool,goto_tool,type_tool,scroll_tool,
+    wait_tool,back_tool,key_tool,download_tool,tab_tool,
+    upload_tool
 ]
 
 class WebAgent(BaseAgent):
-    def __init__(self,browser:Literal['chrome','firefox','edge']='edge',additional_tools:list[Tool]=[],instructions:list=[],llm:BaseInference=None,max_iteration:int=10,use_vision:bool=False,headless:bool=True,verbose:bool=False,token_usage:bool=False) -> None:
-        """
-        Initialize a WebAgent instance.
-        Args:
-            browser (Literal['chrome', 'firefox', 'edge']): The browser to use for web automation. Defaults to 'edge'.
-            additional_tools (list[Tool]): A list of additional tools to be used by the agent. Defaults to an empty list.
-            instructions (list): A list of instructions for the agent to follow. Defaults to an empty list.
-            llm (BaseInference): The language model inference engine used by the agent. Defaults to None.
-            max_iteration (int): The maximum number of iterations the agent should perform. Defaults to 10.
-            use_vision (bool): Whether to use vision capabilities for web interaction. Defaults to False.
-            headless (bool): Whether to run the browser in headless mode. Defaults to True.
-            verbose (bool): Whether to enable verbose to show agent's flow. Defaults to False.
-            token_usage (bool): Whether to track token usage. Defaults to False.
-        """
+    def __init__(self,config:BrowserConfig=None,additional_tools:list[Tool]=[],instructions:list=[],episodic_memory:EpisodicMemory=None,llm:BaseInference=None,max_iteration:int=10,use_vision:bool=False,verbose:bool=False,token_usage:bool=False) -> None:
         self.name='Web Agent'
         self.description='The web agent is designed to automate the process of gathering information from the internet, such as to navigate websites, perform searches, and retrieve data.'
+        self.observation_prompt=read_markdown_file('./src/agent/web/prompt/observation.md')
         self.system_prompt=read_markdown_file('./src/agent/web/prompt/system.md')
-        self.human_prompt=read_markdown_file('./src/agent/web/prompt/human.md')
-        self.browser=Browser(BrowserConfig(browser=browser,headless=headless,user_data_dir=Path(getcwd()).joinpath(f'./user_data/{browser}/{getuser()}').as_posix()))
-        self.ai_prompt=read_markdown_file('./src/agent/web/prompt/ai.md')
+        self.action_prompt=read_markdown_file('./src/agent/web/prompt/action.md')
+        self.answer_prompt=read_markdown_file('./src/agent/web/prompt/answer.md')
         self.instructions=self.format_instructions(instructions)
-        self.context=Context(self.browser,ContextConfig())
-        self.max_iteration=max_iteration
         self.registry=Registry(main_tools+additional_tools)
-        self.use_vision=use_vision
+        self.browser=Browser(config=config)
+        self.context=Context(self.browser,ContextConfig())
+        self.episodic_memory=episodic_memory
+        self.max_iteration=max_iteration
         self.token_usage=token_usage
+        self.use_vision=use_vision
         self.verbose=verbose
         self.iteration=0
         self.llm=llm
@@ -88,8 +73,8 @@ class WebAgent(BaseAgent):
         if self.verbose:
             print(colored(f'Observation: {observation}',color='green',attrs=['bold']))
         state['messages'].pop() # Remove the last message for modification
-        last_message=state['messages'][-1] #ImageMessage/HumanMessage
-        if isinstance(last_message,ImageMessage):
+        last_message=state['messages'][-1] # ImageMessage/HumanMessage
+        if isinstance(last_message,(ImageMessage,HumanMessage)):
             state['messages'][-1]=HumanMessage(f'<Observation>{state.get('prev_observation')}</Observation>')
         if self.verbose and self.token_usage:
             print(f'Input Tokens: {self.llm.tokens.input} Output Tokens: {self.llm.tokens.output} Total Tokens: {self.llm.tokens.total}')
@@ -98,20 +83,37 @@ class WebAgent(BaseAgent):
         image_obj=browser_state.screenshot
         # print('Tabs',browser_state.tabs_to_string())
         # Redefining the AIMessage and adding the new observation
-        ai_prompt=self.ai_prompt.format(thought=thought,action_name=action_name,action_input=json.dumps(action_input,indent=2),route=route)
-        user_prompt=self.human_prompt.format(observation=observation,current_url=browser_state.url,tabs=browser_state.tabs_to_string(),interactive_elements=browser_state.dom_state.elements_to_string())
-        messages=[AIMessage(ai_prompt),ImageMessage(text=user_prompt,image_obj=image_obj) if self.use_vision else HumanMessage(user_prompt)]
+        action_prompt=self.action_prompt.format(thought=thought,action_name=action_name,action_input=json.dumps(action_input,indent=2),route=route)
+        observation_prompt=self.observation_prompt.format(observation=observation,current_url=browser_state.url,tabs=browser_state.tabs_to_string(),interactive_elements=browser_state.dom_state.elements_to_string())
+        messages=[AIMessage(action_prompt),ImageMessage(text=observation_prompt,image_obj=image_obj) if self.use_vision else HumanMessage(observation_prompt)]
         return {**state,'agent_data':agent_data,'messages':messages,'prev_observation':observation}
 
     def final(self,state:AgentState):
         "Give the final answer"
-        agent_data=state.get('agent_data')
-        final_answer=agent_data.get('Final Answer')
+        state['messages'].pop() # Remove the last message for modification
+        last_message=state['messages'][-1] # ImageMessage/HumanMessage
+        if isinstance(last_message,(ImageMessage,HumanMessage)):
+            state['messages'][-1]=HumanMessage(f'<Observation>{state.get('prev_observation')}</Observation>')
+        if self.iteration<self.max_iteration:
+            agent_data=state.get('agent_data')
+            thought=agent_data.get('Thought')
+            final_answer=agent_data.get('Final Answer')
+        else:
+            thought='Looks like I have reached the maximum iteration limit reached.',
+            final_answer='Maximum Iteration reached.'
+        answer_prompt=self.answer_prompt.format(thought=thought,final_answer=final_answer)
+        messages=[AIMessage(answer_prompt)]
         if self.verbose:
             print(colored(f'Final Answer: {final_answer}',color='cyan',attrs=['bold']))
-        return {**state,'output':final_answer}
+        return {**state,'output':final_answer,'messages':messages}
+    
     def controller(self,state:AgentState):
-        return state.get('route').lower()
+        "Route to the next node"
+        if self.iteration<self.max_iteration:
+            self.iteration+=1
+            return state.get('route').lower()
+        else:
+            return 'final'
 
     def create_graph(self):
         "Create the graph"
@@ -128,21 +130,30 @@ class WebAgent(BaseAgent):
         return graph.compile(debug=False)
     
     async def async_invoke(self, input: str):
-        if self.verbose:
-            print(f'Entering '+colored(self.name,'black','on_white'))
         actions_prompt=self.registry.actions_prompt()
         current_datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        system_prompt=self.system_prompt.format(instructions=self.instructions,current_datetime=current_datetime,actions_prompt=actions_prompt)
+        system_prompt=self.system_prompt.format({
+            'instructions':self.instructions,
+            'current_datetime':current_datetime,
+            'actions_prompt':actions_prompt
+        })
+        # Attach episodic memory to the system prompt 
+        if self.episodic_memory and self.episodic_memory.retrieve(input):
+            system_prompt=self.episodic_memory.attach_memory(system_prompt)
         human_prompt=f'Task: {input}'
         messages=[SystemMessage(system_prompt),HumanMessage(human_prompt)]
         state={
             'input':input,
             'agent_data':{},
             'output':'',
+            'route':'',
             'messages':messages
         }
         response=await self.graph.ainvoke(state)
         await self.close()
+        # Extract and store the key takeaways of the task performed by the agent
+        if self.episodic_memory:
+            self.episodic_memory.store(response.get('messages'))
         return response.get('output')
         
     def invoke(self, input: str)->str:

@@ -39,17 +39,18 @@ Use the following tools for interacting and extracting information from the webp
 - Sometimes labels overlap, so use the `element context` to verify the correct element
 
 ## APP MANAGEMENT
-- The screen should only contain the apps that are wanted for the task, this is to avoid distractions caused by other apps.
-- So either close or minimize such apps to keep the screen clean.
+- The screen should only contain the apps that are needed for the task, this is to avoid distractions caused by any other apps
+- You can either close or minimize the unwanted apps that were open
+- Once the purpose of an app is over, don't forget to close or minimize that app before going to the next task
 
 ## TOOL GUIDELINES
 - The tools are implemented using the **PyAutoGUI** python library
 - While giving inputs to the tools give them as per the above requirement
 
 ## SELECTION INSTRUCTION
-- For selecting desktop icons, images, videos, folders, ..etc use double left click
-- For selecting icons inside start menu, start menu, buttons, radio, checkbox, ..etc use single left click
-- For opening context menu of the items above mentioned just single right click
+- For selecting desktop icons, images, videos, folders, ..etc in file explorer use `double left click`
+- For selecting elements inside start menu, start menu, buttons, radio, checkbox, ..etc use `single left click`
+- For opening context menu of the items above mentioned just `single right click`
 
 ---
 
