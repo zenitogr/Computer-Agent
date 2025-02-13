@@ -1,6 +1,7 @@
 <p align='center'>
    <img style="display: block; margin: 0 auto;" src='logo.png'/>
 </p>
+
 This project aims to replicate how a person naturally interacts with a computer to solve tasks. The system utilizes multiple agents to handle tasks such as web browsing, terminal operations, GUI interactions, and memory storage for adaptive decision-making. The **Memory Agent** is pivotal in recalling previous actions, which enhances the efficiency and accuracy of solving related tasks in the future.
 
 ### Demo
