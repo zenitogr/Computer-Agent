@@ -1,4 +1,4 @@
-# Computer Agent
+![Logo of Computer Agent](logo.png)
 
 ## Overview
 

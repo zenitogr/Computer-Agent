@@ -1,9 +1,9 @@
 from src.agent.computer.utils import extract_agent_data,read_markdown_file
 from src.message import AIMessage,HumanMessage,SystemMessage
 from langgraph.graph import StateGraph,START,END
+from src.agent.web import WebAgent,BrowserConfig
 from src.agent.computer.state import AgentState
 from src.agent.terminal import TerminalAgent
-from src.agent.web import WebAgent
 from src.agent.system import SystemAgent
 from src.inference import BaseInference
 from src.agent import BaseAgent
@@ -42,7 +42,8 @@ class ComputerAgent(BaseAgent):
         if self.verbose:
             print(colored(f'Agent Name: Web Agent',color='yellow',attrs=['bold']))
             print(colored(f'Agent Request: {state.get("agent_request")}',color='green',attrs=['bold']))
-        agent=WebAgent(llm=self.llm,headless=False,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
+        config=BrowserConfig(browser='edge',headless=False)
+        agent=WebAgent(config=config,llm=self.llm,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
         if self.verbose:
