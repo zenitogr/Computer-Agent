@@ -1,7 +1,6 @@
-![Logo of Computer Agent](logo.png)
+<img style="display: block; margin: 0 auto;" src='logo.png'/>
 
-## Overview
-
+---
 This project aims to replicate how a person naturally interacts with a computer to solve tasks. The system utilizes multiple agents to handle tasks such as web browsing, terminal operations, GUI interactions, and memory storage for adaptive decision-making. The **Memory Agent** is pivotal in recalling previous actions, which enhances the efficiency and accuracy of solving related tasks in the future.
 
 ### Demo
@@ -11,6 +10,7 @@ https://github.com/user-attachments/assets/5191f377-5eb6-4e49-9ca0-98e0de86feb9
 ### Architecture
 
 The following diagram outlines the high-level interactions between the different agents:
+
 ![Image of the architecture](diagram.svg)
 
 ### Development Status
