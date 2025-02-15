@@ -29,7 +29,6 @@ class ComputerAgent(BaseAgent):
     def reason(self,state:AgentState):    
         message=self.llm.invoke(state.get('messages'))
         agent_data=extract_agent_data(message.content)
-        # print(message.content)
         thought=agent_data.get('Thought')
         route=agent_data.get('Route')
         agent_name=agent_data.get('Agent Name')
