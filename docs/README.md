@@ -65,12 +65,6 @@ The system is structured around the following agents, each with a specialized ro
    Enter your query: <your query goes here>
    ```
 
-## License
-
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
-
-For more information about the AGPL-3.0 license, please visit: https://www.gnu.org/licenses/agpl-3.0.en.html
-
 ## Example
 
 ## Find the weather of a location and write in notepad.
@@ -109,10 +103,21 @@ Thought: I have successfully retrieved the weather information using the Web Age
 Final Answer: The weather information for Singapore has been written into notepad. The current weather in Singapore is 28 degrees Celsius with light rain. The precipitation is 45%, humidity is 75%, and wind is 13 km/h
 ```
 
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
+
+For more information about the AGPL-3.0 license, please visit: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 ## Future Directions
 
 - Enhance the **System Agent** to handle more advanced and complex GUI tasks.
 - Finalize the design and implementation of the **Memory Agent**, determining whether centralized or agent-specific memory is most effective.
 - Continue refining the **Web Search Agent** and **Terminal Agent** for robust performance across a wide range of scenarios.
 
+## **Contact**
+
+For queries or support, please reach out via GitHub Issues.
+
+E-mail: jeogeoalukka@gmail.com
 ---
