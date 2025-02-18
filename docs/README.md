@@ -67,7 +67,7 @@ The system is structured around the following agents, each with a specialized ro
 
 ## License
 
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
 
 For more information about the AGPL-3.0 license, please visit: https://www.gnu.org/licenses/agpl-3.0.en.html
 
