@@ -65,6 +65,12 @@ The system is structured around the following agents, each with a specialized ro
    Enter your query: <your query goes here>
    ```
 
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+
+For more information about the AGPL-3.0 license, please visit: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 ## Example
 
 ## Find the weather of a location and write in notepad.
@@ -108,9 +114,5 @@ Final Answer: The weather information for Singapore has been written into notepa
 - Enhance the **System Agent** to handle more advanced and complex GUI tasks.
 - Finalize the design and implementation of the **Memory Agent**, determining whether centralized or agent-specific memory is most effective.
 - Continue refining the **Web Search Agent** and **Terminal Agent** for robust performance across a wide range of scenarios.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
