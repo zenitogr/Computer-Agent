@@ -61,7 +61,7 @@ class ChatUI(QWidget):
 
         # ✅ Text Input (No border, No extra padding)
         self.text_input = QTextEdit()
-        self.text_input.setPlaceholderText("Ask me anything…")
+        self.text_input.setPlaceholderText("Ask me anything...")
         self.text_input.setFixedHeight(45)
         self.text_input.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.text_input.setStyleSheet("""
@@ -123,6 +123,7 @@ class ChatUI(QWidget):
             self.is_recording=True
             self.update_style(self.mic_button,"background-color","#CBD5E1")
             self.speech.start_recording()
+            self.text_input.setPlaceholderText('Listening...')
         else:
             self.is_recording=False
             self.update_style(self.mic_button,"background-color","#E2E8F0")
@@ -130,6 +131,7 @@ class ChatUI(QWidget):
             self.speech_thread=SpeechThread(self.speech)
             self.speech_thread.start()
             self.speech_thread.finished.connect(self.on_speech_finished)
+            self.text_input.setPlaceholderText('Processing...')
 
     def on_speech_finished(self,content:str):
         content=content.strip()
@@ -143,12 +145,15 @@ class ChatUI(QWidget):
         if len(self.text_input.toPlainText().strip()):
             self.send_button.setDisabled(False)
         else:
+            self.text_input.setPlaceholderText('Ask me anything...')
             self.send_button.setDisabled(True)
 
     def on_send_clicked(self):
         query=self.text_input.toPlainText().strip()
         if query:
             self.text_input.setText('')
+            self.text_input.setPlaceholderText('Executing Task...')
+            self.text_input.setDisabled(True)
             self.agent_thread=AgentThread(self.agent,query)
             self.agent_thread.finished.connect(self.on_agent_finished)
             self.agent_thread.start()
@@ -156,6 +161,8 @@ class ChatUI(QWidget):
             self.send_button.setDisabled(True)
 
     def on_agent_finished(self,content:str):
+        self.text_input.setPlaceholderText("Ask me anything...")
+        self.text_input.setDisabled(False)
         print(content)
 
     def update_style(self,widget:QWidget, property_name:str, new_value:str):

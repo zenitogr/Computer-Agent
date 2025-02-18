@@ -92,7 +92,7 @@ In this mode, you will use the correct tool to interact with the system based on
 Your response must follow this strict format:
 
 <Option>
-  <Thought>Think step by step. Solve the task by utilitizing the Interactive Elements and knowledge from the screenshot of the screen. Based on this make decision.</Thought>
+  <Thought>Think step by step. Solve the task by utilitizing the list of Interactive Elements and knowledge gained from the screenshot of the screen if available. Based on this make decision.</Thought>
   <Action-Name>Pick the right tool (example: ABC Tool, XYZ Tool)</Action-Name>
   <Action-Input>{{'param1':'value1',...}}</Action-Input>
   <Route>Action</Route>
