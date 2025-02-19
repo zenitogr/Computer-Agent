@@ -1,4 +1,4 @@
-from src.agent.system.tools.views import Click,Type,Scroll,Shortcut,Key
+from src.agent.system.tools.views import Click,Type,Scroll,Shortcut,Key,Wait
 from src.agent.system.desktop import Desktop
 from typing import Literal
 from src.tool import Tool
@@ -42,3 +42,9 @@ def key_tool(key:str='',desktop:Desktop=None):
     '''Presses the specified key.'''
     pg.press(key)
     return f'Pressed the key {key}.'
+
+@Tool('Wait Tool', params=Wait)
+def wait_tool(duration:int=0,desktop:Desktop=None):
+    '''Waits for the specified duration in seconds.'''
+    pg.sleep(duration)
+    return f'Waited for {duration} seconds.'

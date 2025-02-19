@@ -42,7 +42,7 @@ class ComputerAgent(BaseAgent):
             print(colored(f'Agent Name: Web Agent',color='yellow',attrs=['bold']))
             print(colored(f'Agent Request: {state.get("agent_request")}',color='green',attrs=['bold']))
         config=BrowserConfig(browser='edge',headless=False)
-        agent=WebAgent(config=config,llm=self.llm,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
+        agent=WebAgent(config=config,llm=self.llm,max_iteration=self.max_iteration,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
         if self.verbose:
@@ -53,7 +53,7 @@ class ComputerAgent(BaseAgent):
         if self.verbose:
             print(colored(f'Agent Name: Terminal Agent',color='yellow',attrs=['bold']))
             print(colored(f'Agent Request: {state.get("agent_request")}',color='green',attrs=['bold']))
-        agent=TerminalAgent(llm=self.llm,verbose=self.verbose,token_usage=self.token_usage)
+        agent=TerminalAgent(llm=self.llm,max_iteration=self.max_iteration,verbose=self.verbose,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
         if self.verbose:
@@ -65,7 +65,7 @@ class ComputerAgent(BaseAgent):
             print(colored(f'Agent Name: System Agent',color='yellow',attrs=['bold']))
             print(colored(f'Agent Request: {state.get("agent_request")}',color='green',attrs=['bold']))
 
-        agent=SystemAgent(llm=self.llm,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
+        agent=SystemAgent(llm=self.llm,max_iteration=self.max_iteration,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
         message=HumanMessage(agent_response)
         if self.verbose:

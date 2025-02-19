@@ -2,10 +2,10 @@ from src.agent.system.desktop.views import DesktopState,App
 from src.agent.system.tree import Tree,TreeElementNode
 from pygetwindow import getActiveWindow
 from uiautomation import GetRootControl
-from PIL import Image,ImageGrab
 from datetime import datetime
 from pathlib import Path
 from io import BytesIO
+from PIL import Image
 from os import getcwd
 import pyautogui
 
@@ -31,10 +31,9 @@ class Desktop:
             raise ValueError(f'Invalid index {index}')
         return selector_map.get(index)
     
-    def get_screenshot(self)->BytesIO:
-        screenshot=ImageGrab.grab()
-        screenshot_bytes=self.screenshot_in_bytes(screenshot)
-        return BytesIO(screenshot_bytes)
+    def get_screenshot(self)->Image:
+        screenshot=pyautogui.screenshot()
+        return screenshot
     
     def screenshot_in_bytes(self,screenshot:Image)->bytes:
         io=BytesIO()

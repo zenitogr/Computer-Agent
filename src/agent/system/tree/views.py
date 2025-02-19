@@ -25,9 +25,10 @@ class CenterCord:
 class TreeElementNode:
     name:str
     control_type:str
+    shortcut:str
     bounding_box:BoundingBox
     center:CenterCord
     handle:Control
 
     def __repr__(self):
-        return f'TreeElementNode(name={self.name},control_type={self.control_type},bounding_box={self.bounding_box},center={self.center})'
+        return f'TreeElementNode(name={self.name},control_type={self.control_type},shortcut={self.shortcut},bounding_box={self.bounding_box},center={self.center})'

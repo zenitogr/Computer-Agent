@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QApplication, QWidget, QHBoxLayout, QPushButton, QTextEdit, QGraphicsDropShadowEffect, QVBoxLayout
 from ui.thread import SpeechThread,AgentThread
-from PyQt6.QtGui import QIcon, QColor
+from PyQt6.QtGui import QIcon, QColor, QCursor
 from PyQt6.QtCore import Qt
 import sys
 import os
@@ -44,7 +44,7 @@ class ChatUI(QWidget):
         # ✅ Mic Button
         self.mic_button = QPushButton()
         self.mic_button.setFixedSize(40, 45)
-        self.mic_button.setIcon(QIcon("./ui/icons/mic.svg"))
+        self.mic_button.setIcon(QIcon("./ui/assets/mic.svg"))
         self.mic_button.setStyleSheet("""
             QPushButton {
                 background-color: #E2E8F0;
@@ -56,7 +56,7 @@ class ChatUI(QWidget):
                 background-color: #CBD5E1;
             }
         """)
-
+        self.mic_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.mic_button.clicked.connect(self.on_mic_clicked)
 
         # ✅ Text Input (No border, No extra padding)
@@ -79,13 +79,17 @@ class ChatUI(QWidget):
                 outline: none;
             }
         """)
-
         self.text_input.textChanged.connect(self.on_text_changed)
+        # Override keyPressEvent for the existing QTextEdit instance
+        self.text_input.keyPressEvent = lambda event: (
+            self.on_send_clicked() if (event.key() == Qt.Key.Key_Return and not event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
+            else QTextEdit.keyPressEvent(self.text_input, event)  # Call default behavior for other keys
+        )
 
         # ✅ Send Button
         self.send_button = QPushButton()
         self.send_button.setFixedSize(40, 45)
-        self.send_button.setIcon(QIcon("./ui/icons/send.svg"))
+        self.send_button.setIcon(QIcon("./ui/assets/send.svg"))
         self.send_button.setStyleSheet("""
             QPushButton {
                 background-color: #E2E8F0;
@@ -97,7 +101,7 @@ class ChatUI(QWidget):
                 background-color: #CBD5E1;
             }
         """)
-
+        self.send_button.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.send_button.clicked.connect(self.on_send_clicked)
 
         # ✅ Add widgets inside the container
@@ -180,7 +184,11 @@ class ChatUI(QWidget):
         widget.setStyleSheet(updated_style)
         
 def launch_app(agent:ComputerAgent=None,speech:Speech=None):
+    import ctypes
+    myappid = u'mycompany.myproduct.subproduct.version' # arbitrary string
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     app = QApplication([])
+    app.setWindowIcon(QIcon('./ui/assets/icon.png'))
     window = ChatUI(agent=agent,speech=speech)
     window.show()
     app.exec()

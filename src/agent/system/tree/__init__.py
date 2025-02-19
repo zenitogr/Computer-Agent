@@ -16,7 +16,8 @@ class Tree:
         root=GetRootControl()
         nodes=self.get_interactive_nodes(node=root)
         if use_vision:
-            screenshot=self.mark_screen(nodes=nodes,save_screenshot=False)
+            annotate=self.annotate(nodes=nodes,save_screenshot=False)
+            screenshot=self.desktop.screenshot_in_bytes(screenshot=annotate)
         else:
             screenshot=None
         selector_map=self.build_selector_map(nodes=nodes)
@@ -40,18 +41,22 @@ class Tree:
             height=box.height()
             area=width*height
             is_offscreen=not node.IsOffscreen
-            return area >threshold and is_offscreen
+            return area > threshold and is_offscreen
             
         def tree_traversal(node: Control):
             if is_element_interactive(node) and not is_window_minimized(node):
                 box = node.BoundingRectangle
                 bounding_box = BoundingBox(
-                    left=box.left, top=box.top, right=box.right, bottom=box.bottom
+                    left=box.left,
+                    top=box.top,
+                    right=box.right,
+                    bottom=box.bottom
                 )
                 center = CenterCord(x=box.xcenter(), y=box.ycenter())
                 interactive_nodes.append(TreeElementNode(
                     name=node.Name.strip(),
                     control_type=node.ControlTypeName,
+                    shortcut=node.AcceleratorKey,
                     bounding_box=bounding_box,
                     center=center,
                     handle=node
@@ -66,9 +71,8 @@ class Tree:
     def get_random_color(self):
         return "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
-    def mark_screen(self,nodes:list[TreeElementNode],save_screenshot:bool=False)->bytes:
-        screenshot_bytes=self.desktop.get_screenshot()
-        screenshot=Image.open(screenshot_bytes).convert('RGB')
+    def annotate(self,nodes:list[TreeElementNode],save_screenshot:bool=False)->Image:
+        screenshot=self.desktop.get_screenshot()
         # Include padding to the screenshot
         padding=20
         width=screenshot.width+(2*padding)
@@ -115,7 +119,13 @@ class Tree:
 
         if save_screenshot:
             self.desktop.save_screenshot(padded_screenshot)
-        return self.desktop.screenshot_in_bytes(padded_screenshot)
+        return padded_screenshot
+    
+    def get_annotated_image_data(self,save_screenshot=False)->tuple[Image,list[TreeElementNode]]:
+        root=GetRootControl()
+        nodes=self.get_interactive_nodes(node=root)
+        screenshot=self.annotate(nodes=nodes,save_screenshot=save_screenshot)
+        return screenshot,nodes
 
     def build_selector_map(self, nodes: list[TreeElementNode]) -> dict[int, TreeElementNode]:
         return {index:node for index,node in enumerate(nodes)}

@@ -9,7 +9,7 @@ class Browser:
         self.playwright:Playwright = None
         self.config = config if config else BrowserConfig()
         self.playwright_browser:PlaywrightBrowser = None
-        self.browser_process=None
+        self.process=None
 
     async def __aenter__(self):
         await self.init_browser()
@@ -31,6 +31,7 @@ class Browser:
         parameters={
             'headless':self.config.headless,
             'downloads_path':self.config.downloads_path,
+            'timeout':self.config.timeout,
             'slow_mo':self.config.slow_mo,
             'args':BROWSER_ARGS + SECURITY_ARGS
         }
@@ -48,7 +49,7 @@ class Browser:
         elif self.config.browser_instance_path is not None:
             #Only for chromium
             port=9222
-            self.browser_process=Popen([self.config.browser_instance_path,f'--remote-debugging-port={port}','--headless'],stdout=DEVNULL,stderr=DEVNULL)
+            self.process=Popen([self.config.browser_instance_path,f'--remote-debugging-port={port}','--headless'],stdout=DEVNULL,stderr=DEVNULL)
             async with AsyncClient() as client:
                 response=await client.get(f'http://localhost:{port}/json')
                 if response.status_code!=200:
@@ -71,8 +72,8 @@ class Browser:
                 await self.playwright_browser.close()
             if self.playwright:
                 await self.playwright.stop()
-            if self.browser_process:
-                self.browser_process.kill()
+            if self.process:
+                self.process.terminate()
         except Exception as e:
             print('Browser failed to close')
         finally:

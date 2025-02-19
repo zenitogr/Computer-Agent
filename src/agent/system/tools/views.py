@@ -23,3 +23,6 @@ class Shortcut(SharedBaseModel):
 
 class Key(SharedBaseModel):
     key:str=Field(...,description="The key to press.",examples=['enter'])
+
+class Wait(SharedBaseModel):
+    duration:int=Field(...,description="The duration to wait in seconds.",examples=[5])

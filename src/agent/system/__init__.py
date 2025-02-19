@@ -1,4 +1,4 @@
-from src.agent.system.tools import click_tool,type_tool,scroll_tool,shortcut_tool,key_tool
+from src.agent.system.tools import click_tool,type_tool,scroll_tool,shortcut_tool,key_tool,wait_tool
 from src.message import HumanMessage,SystemMessage,AIMessage,ImageMessage
 from src.agent.system.utils import read_markdown_file,extract_agent_data
 from langgraph.graph import StateGraph,START,END
@@ -22,7 +22,7 @@ pyautogui.PAUSE=2.5
 tools=[
     click_tool,type_tool,
     scroll_tool,shortcut_tool,
-    key_tool
+    key_tool,wait_tool
 ]
 
 class SystemAgent(BaseAgent):
@@ -78,6 +78,7 @@ class SystemAgent(BaseAgent):
             print(f'Input Tokens: {self.llm.tokens.input} Output Tokens: {self.llm.tokens.output} Total Tokens: {self.llm.tokens.total}')
         desktop_state=self.desktop.get_state(use_vision=self.use_vision)
         image_obj=desktop_state.screenshot
+        # print(desktop_state.tree_state.elements_to_string())
         ai_prompt=self.action_prompt.format(thought=thought,action_name=action_name,action_input=json.dumps(action_input,indent=2),route=route)
         user_prompt=self.observation_prompt.format(observation=observation,active_app=desktop_state.active_app,apps=desktop_state.apps_to_string(),interactive_elements=desktop_state.tree_state.elements_to_string())
         messages=[AIMessage(ai_prompt),ImageMessage(text=user_prompt,image_obj=image_obj) if self.use_vision else HumanMessage(user_prompt)]
