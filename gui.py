@@ -14,6 +14,6 @@ llm=ChatGemini(model='gemini-2.0-flash',api_key=google_api_key,temperature=0)
 audio_llm=AudioGroq(model='whisper-large-v3',mode='translations',api_key=groq_api_key,temperature=0)
 
 speech=Speech(llm=audio_llm,verbose=True)
-agent=ComputerAgent(llm=llm,use_vision=False,max_iteration=30,verbose=True)
+agent=ComputerAgent(llm=llm,use_vision=True,max_iteration=30,verbose=True)
 
 launch_app(agent=agent,speech=speech)

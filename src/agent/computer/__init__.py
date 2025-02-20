@@ -17,7 +17,8 @@ class ComputerAgent(BaseAgent):
     def __init__(self,llm:BaseInference=None,use_vision:bool=False,max_iteration:int=10,token_usage:bool=False,verbose:bool=False):
         self.name='Computer Agent'
         self.description='This agent tries to simulate a human using the computer'
-        self.system_prompt=read_markdown_file('src/agent/computer/prompt.md')
+        self.system_prompt=read_markdown_file('src/agent/computer/prompt/system.md')
+        self.human_prompt=read_markdown_file('src/agent/computer/prompt/human.md')
         self.max_iteration=max_iteration
         self.iteration=0
         self.llm=llm
@@ -44,7 +45,8 @@ class ComputerAgent(BaseAgent):
         config=BrowserConfig(browser='edge',headless=False)
         agent=WebAgent(config=config,llm=self.llm,max_iteration=self.max_iteration,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
-        message=HumanMessage(agent_response)
+        human_prompt=self.human_prompt.format(agent='Web Agent',response=agent_response)
+        message=HumanMessage(human_prompt)
         if self.verbose:
             print(colored(f'Agent Response: {agent_response}',color='blue',attrs=['bold']))
         return {**state,'messages':[message],'agent_response':agent_response}
@@ -55,7 +57,8 @@ class ComputerAgent(BaseAgent):
             print(colored(f'Agent Request: {state.get("agent_request")}',color='green',attrs=['bold']))
         agent=TerminalAgent(llm=self.llm,max_iteration=self.max_iteration,verbose=self.verbose,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
-        message=HumanMessage(agent_response)
+        human_prompt=self.human_prompt.format(agent='Terminal Agent',response=agent_response)
+        message=HumanMessage(human_prompt)
         if self.verbose:
             print(colored(f'Agent Response: {agent_response}',color='blue',attrs=['bold']))
         return {**state,'messages':[message],'agent_response':agent_response}
@@ -67,7 +70,8 @@ class ComputerAgent(BaseAgent):
 
         agent=SystemAgent(llm=self.llm,max_iteration=self.max_iteration,verbose=self.verbose,use_vision=self.use_vision,token_usage=self.token_usage)
         agent_response=agent.invoke(state.get('agent_request'))
-        message=HumanMessage(agent_response)
+        human_prompt=self.human_prompt.format(agent='System Agent',response=agent_response)
+        message=HumanMessage(human_prompt)
         if self.verbose:
             print(colored(f'Agent Response: {agent_response}',color='blue',attrs=['bold']))
         return {**state,'messages':[message],'agent_response':agent_response}

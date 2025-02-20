@@ -156,13 +156,8 @@ class WebAgent(BaseAgent):
         return response.get('output')
         
     def invoke(self, input: str)->str:
-        """
-        Invoke the agent to perform a task.
-        Args:
-            input (str): The input task
-        Returns:
-            str: The final answer
-        """
+        if self.verbose:
+            print(f'Entering '+colored(self.name,'black','on_white'))
         try:
             # If there's no running event loop, use asyncio.run
             return asyncio.run(self.async_invoke(input))

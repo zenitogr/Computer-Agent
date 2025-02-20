@@ -21,6 +21,8 @@ tools=[
 
 class TerminalAgent(BaseAgent):
     def __init__(self,instructions:list[str]=[],episodic_memory:EpisodicMemory=None,additional_tools:list[Tool]=[],llm:BaseInference=None,verbose:bool=False,max_iteration:int=10,token_usage:bool=False):
+        self.name='Terminal Agent'
+        self.description='The Terminal Agent is an AI-powered automation tool designed to interact with the terminal. It simulates human actions, such as running shell commands, executing scripts, and performing other terminal-level tasks.'
         self.llm=llm
         self.verbose=verbose
         self.max_iteration=max_iteration
@@ -106,6 +108,8 @@ class TerminalAgent(BaseAgent):
         return workflow.compile(debug=False)
 
     def invoke(self,input:str):
+        if self.verbose:
+            print(f'Entering '+colored(self.name,'black','on_white'))
         parameters={
             'instructions':self.instructions,
             'current_datetime':datetime.now().strftime('%Y-%m-%d %H:%M:%S'),

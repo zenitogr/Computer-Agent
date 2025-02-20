@@ -14,4 +14,4 @@ ratelimit
 mainContentExtractor
 pyaudio
 keyboard
-pydb
+pyqt6

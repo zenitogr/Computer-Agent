@@ -23,7 +23,7 @@ class DOM:
         # Add bounding boxes to the interactive elements
         if use_vision:
             await self.context.execute_script('nodes=>{mark_page(nodes)}',nodes)
-            screenshot=await self.context.get_screenshot(save_screenshot=True)
+            screenshot=await self.context.get_screenshot(save_screenshot=False)
             await self.context.execute_script('unmark_page()')
         else:
             screenshot=None

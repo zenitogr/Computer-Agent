@@ -17,7 +17,7 @@ class Desktop:
         active_window=getActiveWindow()
         active_app=active_window.title
         windows=self.get_windows_in_z_order()
-        apps=[App(name=window.Name,depth=depth,is_maximized=window.IsMaximize(),is_minimized=window.IsMinimize()) for depth,window in enumerate(windows) if window.Name!=active_app]
+        apps=[App(name=window.Name,depth=depth,is_maximized=window.IsMaximize(),is_minimized=window.IsMinimize()) for depth,window in enumerate(windows) if window.ControlType in ['WindowControl','PaneControl'] and window.Name!=active_app]
         screenshot,tree_state=tree.get_state(use_vision=use_vision)
         self.desktop_state=DesktopState(active_app=active_app,apps=apps,screenshot=screenshot,tree_state=tree_state)
         return self.desktop_state
