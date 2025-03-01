@@ -107,6 +107,16 @@ Final Answer: The weather information for Singapore has been written into notepa
 
 This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
 
+### What this means:
+
+- ✔️ You can view and use this code for personal and educational purposes
+- ✔️ You can modify the code
+- ✔️ You must preserve the copyright and license notices
+- ✔️ You must disclose the source code when distributing the software
+- ✔️ Changes must be released under the same license
+- ❌ You cannot use this code for commercial purposes without explicit permission
+- ❌ No warranty is provided
+
 For more information about the AGPL-3.0 license, please visit: https://www.gnu.org/licenses/agpl-3.0.en.html
 
 ## Future Directions
