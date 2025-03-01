@@ -6,7 +6,7 @@ This project aims to replicate how a person naturally interacts with a computer 
 
 ### Demo
 
-https://github.com/user-attachments/assets/5191f377-5eb6-4e49-9ca0-98e0de86feb9
+https://github.com/user-attachments/assets/63b21b86-a829-4e30-a2c4-cca33e0ba907
 
 ### Architecture
 
